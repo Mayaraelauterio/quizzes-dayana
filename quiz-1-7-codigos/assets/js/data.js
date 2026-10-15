@@ -80,10 +80,23 @@ const ANTES_DEPOIS = [
   { cod: 'persevera',   quando: 'uma prova dá errado', a: '“Será que é pra mim?”', d: 'Volta a estudar em poucos dias' }
 ];
 
-/* Depoimentos de ex-alunos — AGUARDANDO prints autorizados.
-   Formato: { img: 'depo-nome.webp', nome: 'Iniciais', cargo: 'Juiz(a) de Direito', ano: '2016', codigo: 'persevera', txt: 'texto literal do print' }
-   Regra: texto literal, sem edição; não citar total de aprovados. */
-const DEPOIMENTOS = [];
+/* Depoimentos reais (prints em ../Depoimento/, recebidos em 15/10/2026; uso autorizado pelos dois alunos, segundo a Mayara).
+   Formato: { img, nome, cargo, ano, codigo (a inserção do código mostra o depoimento), trava (0 a 4, a resposta da P29), txt (trecho literal do print) }
+   - img: o print aparece na tela de prova (I11) ou na página de vendas, conforme o campo local ('prova' ou 'pagina');
+   - txt: trecho literal, sem edição, que aparece nas inserções e nas telas de trava;
+   - não citar total de aprovados.
+   A "plataforma Fly" do print do Márcio era da Dayana (confirmado pela Mayara em 15/10/2026). */
+const DEPOIMENTOS = [
+  { img: 'depo-marcio.jpg', nome: 'Márcio Cristiano', cargo: 'Delegado da PCPR, 5º lugar · aluno da plataforma Fly, da Dayana', ano: '2022',
+    codigo: 'pratica', trava: 0, local: 'pagina',
+    txt: 'Resultado de DELEGADO da PCPR saiu ontem. Passei em 5º lugar. Estudei 100% na plataforma fly.' },
+  { img: 'depo-adriana-2.jpg', nome: 'Adriana Lima', cargo: 'aluna da Mentoria Método Aprovação', ano: '2026',
+    codigo: 'semeia', trava: 2, local: 'prova',
+    txt: 'Consegui cumprir tudo do cronograma. (…) E posso te afirmar que muito diferente de todas as outras vezes que tentei. Agora está sendo leve e prazeroso, pois estou aberta a viver o processo em paz.' },
+  { img: 'depo-adriana-1.jpg', nome: 'Adriana Lima', cargo: 'aluna da Mentoria Método Aprovação', ano: '2026',
+    codigo: 'seposiciona', trava: 3, local: 'prova',
+    txt: '(…) a mentoria não se trata apenas de saber como fazer, o que fazer ou por quanto tempo fazer, mas também de quem é você agora e de quem será quando a hora chegar.' }
+];
 
 /* Frases de incentivo: aparecem acima da 4ª, 8ª, 12ª… pergunta (contando só as perguntas que a pessoa vê) */
 const MOTIVACAO = [
@@ -443,7 +456,7 @@ const TELAS = [
     tit: 'Método claro é exatamente o que eu vou te entregar.',
     pontos: [
       { i: 'repetir', t: 'Em uns 7 meses de estudo, eu revisei o edital <b>pelo menos 6 vezes</b>.' },
-      { i: 'relogio', t: 'O passo a passo está no bônus <b>Método 48, 7 e 30</b>: revisar no tempo certo, antes de esquecer.' },
+      { i: 'lapis', t: 'No <b>Diário do Concurseiro</b>, você anota o que estudou, o que errou e o que <b>precisa revisar</b>.' },
       { i: 'play', t: 'E cada aula termina com uma prática para os próximos 7 dias. <b>Nada de teoria solta.</b>' }
     ],
     btn: 'Continuar' },
@@ -469,7 +482,7 @@ const TELAS = [
     tit: 'Você não precisa escolher entre método e fé.',
     pontos: [
       { i: 'coroa', t: 'Na Aula 8, <b>Aprovado diante de Deus</b>, eu mostro como colocar a fé na sua preparação.' },
-      { i: 'chave', t: 'No <b>Protocolo Antitrava</b>, eu te preparo para o dia da prova: para a ansiedade, o branco e a pressão.' },
+      { i: 'livro', t: 'No <b>Devocional do Concurseiro</b>, são 30 dias com <b>um versículo e um estudo por dia</b>, para começar cada dia de estudo com Deus.' },
       { i: 'bussola', t: 'E a direção começa no seu mapa: ele mostra <b>por qual código começar</b>.' }
     ],
     btn: 'Continuar' },
@@ -499,7 +512,7 @@ const TELAS = [
   { id: 'I11', t: 'prova',
     show: () => DEPOIMENTOS.length > 0 || (window.CONFIG && CONFIG.MOSTRAR_ESPACOS_RESERVADOS),
     tit: 'Não é teoria. É o que eu vi acontecer.',
-    sub: 'Fui mentora de concurseiros de 2011 a 2021, enquanto era juíza. Veja o que alguns deles me mandaram:',
+    sub: 'Fui mentora de concurseiros de 2011 a 2021, enquanto era juíza, e hoje sigo com a Mentoria Método Aprovação. Veja o que alguns alunos me mandaram:',
     btn: 'Montar o meu mapa' },
 
   { id: 'CAPTURA', t: 'captura',
@@ -541,9 +554,9 @@ const AULAS = [
 
 const BONUS = [
   /* valor: preço de referência mostrado riscado. Definidos pela Mayara em 07/10/2026; só o livro (R$ 39,90) tem preço público. */
-  { id: 'B1', ic: 'repetir', valor: 197, cor: '#1f6f50', tit: 'Bônus 1 · Ebook <em>Método 48, 7 e 30</em>',
-    txt: 'O passo a passo da revisão que me fez revisar o edital pelo menos 6 vezes em cerca de 7 meses.',
-    extra: { when: A => is(A, 'P8', 0), html: 'Você me disse que termina um assunto e não volta mais nele. Este bônus resolve exatamente isso.' } },
+  { id: 'B1', ic: 'maos', valor: 197, cor: '#1f6f50', tit: 'Bônus 1 · <em>Devocional do Concurseiro: 30 dias</em>',
+    txt: 'Um versículo e um estudo por dia, para começar o seu dia de estudo com Deus. Os 30 dias passam pelos 7 códigos da aprovação.',
+    extra: { when: A => is(A, 'P29', 3), html: 'Você me disse que falta direção e fé para continuar. Este bônus foi feito para isso.' } },
   { id: 'B2', ic: 'montanha', valor: 97, cor: '#1d2f55', tit: 'Bônus 2 · <em>Protocolo da Reprovação</em>',
     txt: 'O que fazer nas primeiras 24 horas depois de uma reprovação. Serve para qualquer concurso.',
     numerado: true,
@@ -562,7 +575,7 @@ const BONUS = [
 const OFERTA_ITENS = [
   { t: '7 aulas dos 7 Códigos da Aprovação' },
   { t: 'Aula bônus: Aprovado diante de Deus' },
-  { t: 'Ebook <em>Método 48, 7 e 30</em>', b: 'B1' },
+  { t: '<em>Devocional do Concurseiro: 30 dias</em>', b: 'B1' },
   { t: '<em>Protocolo da Reprovação</em>', b: 'B2' },
   { t: '<em>Protocolo Antitrava</em>', b: 'B3' },
   { t: 'Livro digital <em>Minha Última Sentença</em>', b: 'B4' },

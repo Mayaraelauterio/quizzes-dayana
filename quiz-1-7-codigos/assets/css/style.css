@@ -729,3 +729,25 @@ ol.bonus-itens li::before { counter-increment: passo; content: counter(passo); d
 /* v1.9 — nomes de código mais longos (POSICIONAMENTO, PERSEVERANÇA, NÃO DUVIDAR) nos círculos das aulas */
 .aulas-circ { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .aula-circ small.longo { font-size: 8px; letter-spacing: 0; }
+
+/* v2.0 — foto da família em "Quem está falando com você" e prints de depoimento */
+.foto-familia { margin: 12px 0 0; }
+.foto-familia img { aspect-ratio: 3 / 2; object-fit: cover; object-position: center 30%; }
+.foto-familia figcaption { margin-top: 6px; color: var(--muted); font-size: 13px; font-style: italic; text-align: center; }
+.depos-tit { margin: 22px 0 10px; font-size: 18px; line-height: 1.3; }
+.depo img { display: block; width: 100%; border: 1px solid var(--line); }
+body.ins-c5 .tela-ins .depo-ins { margin-bottom: 8px; padding: 8px 12px; }
+body.ins-c5 .tela-ins .depo-ins blockquote { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 13px; line-height: 1.35; }
+body.ins-c5 .tela-ins .depo-ins figcaption { margin-top: 3px; font-size: 11px; }
+body.ins-c6 .tela-ins .depo-ins { display: none; }
+
+/* v2.1 — prints lado a lado na tela de prova e ampliação ao tocar */
+.depos-lado { grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+.depos-lado .depo { padding: 6px; }
+.depos-lado .depo img { margin-bottom: 6px; border-radius: 8px; }
+.depos-lado .depo figcaption { font-size: 11px; line-height: 1.3; }
+.depo img { cursor: zoom-in; }
+.depos-dica { margin: -8px 0 14px; color: var(--muted); font-size: 12px; text-align: center; }
+.zoom { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; overflow: auto; padding: 56px 16px 16px; background: rgba(0, 0, 0, .88); cursor: zoom-out; }
+.zoom img { display: block; max-width: min(100%, 520px); height: auto; border-radius: 10px; }
+.zoom-x { position: fixed; top: 12px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff; color: #111; font-size: 24px; line-height: 1; cursor: pointer; }

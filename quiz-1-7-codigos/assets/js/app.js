@@ -230,6 +230,19 @@
     return '<figure class="foto ' + (cls || '') + '"><img src="assets/img/' + esc(img.src) + '" alt="' + esc(img.alt) +
       '" data-ph="' + esc(img.ph) + '" data-arq="' + esc(img.src) + '" loading="lazy"></figure>';
   }
+  document.addEventListener('click', function (e) {
+    var img = e.target.closest && e.target.closest('.depo img');
+    if (!img) return;
+    var ov = document.createElement('div');
+    ov.className = 'zoom'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', 'Print ampliado');
+    ov.innerHTML = '<img src="' + esc(img.getAttribute('src')) + '" alt="' + esc(img.alt) + '"><button type="button" class="zoom-x" aria-label="Fechar">×</button>';
+    function fechar() { ov.remove(); document.removeEventListener('keydown', tecla); img.focus && img.focus(); }
+    function tecla(ev) { if (ev.key === 'Escape') fechar(); }
+    ov.addEventListener('click', fechar);
+    document.addEventListener('keydown', tecla);
+    document.body.appendChild(ov);
+    ov.querySelector('.zoom-x').focus();
+  });
   document.addEventListener('error', function (e) {
     var el = e.target;
     if (!el || el.tagName !== 'IMG') return;
@@ -283,7 +296,8 @@
   /* Inserções fixas: o texto cabe inteiro na tela, sem rolar.
      A tela ocupa a altura visível; se o texto não couber, a letra e os espaços diminuem em até 4 passos.
      Só em telas muito baixas (abaixo de ~560 px) ainda pode sobrar rolagem, para nada ficar cortado. */
-  var PASSOS_INS = ['ins-c1', 'ins-c2', 'ins-c3', 'ins-c4'];
+  /* ins-c5 encurta o depoimento da inserção para 2 linhas; ins-c6 tira o depoimento só em telas muito baixas (ele continua na prova e na página) */
+  var PASSOS_INS = ['ins-c1', 'ins-c2', 'ins-c3', 'ins-c4', 'ins-c5', 'ins-c6'];
   function ajustarInsercao() {
     PASSOS_INS.concat('ins-rola').forEach(function (c) { document.body.classList.remove(c); });
     var tela = $app.querySelector('.tela');
@@ -508,8 +522,8 @@
     var h = '';
     if (lista.length) {
       lista.slice(0, n).forEach(function (d) {
-        h += '<figure class="depo">' + (d.img ? '<img src="assets/img/' + esc(d.img) + '" alt="Depoimento de ' + esc(d.nome) + '" loading="lazy" data-ph="Print do depoimento" data-arq="' + esc(d.img) + '">' : '') +
-          (d.txt ? '<blockquote>“' + esc(d.txt) + '”</blockquote>' : '') +
+        h += '<figure class="depo">' + (d.img ? '<img src="assets/img/' + esc(d.img) + '" alt="Depoimento de ' + esc(d.nome) + ': ' + esc(d.txt || '') + '" loading="lazy" data-ph="Print do depoimento" data-arq="' + esc(d.img) + '">' : '') +
+          (d.txt && !d.img ? '<blockquote>“' + esc(d.txt) + '”</blockquote>' : '') +
           '<figcaption>' + esc(d.nome) + (d.cargo ? ' · ' + esc(d.cargo) : '') + (d.ano ? ' · ' + esc(d.ano) : '') + '</figcaption></figure>';
       });
     } else if (PH) {
@@ -529,14 +543,13 @@
     return '<figure class="depo-ins">' + (d.txt ? '<blockquote>“' + esc(d.txt) + '”</blockquote>' : (d.img ? '<img src="assets/img/' + esc(d.img) + '" alt="Depoimento de ' + esc(d.nome) + '" loading="lazy">' : '')) +
       '<figcaption>' + esc(d.nome) + (d.cargo ? ' · ' + esc(d.cargo) : '') + (d.ano ? ' · ' + esc(d.ano) : '') + '</figcaption></figure>';
   }
-  function depoimentosOrdenados() {
-    var r = R || calcular();
-    return DEPOIMENTOS.slice().sort(function (a, b) { return (b.codigo === r.travado) - (a.codigo === r.travado); });
-  }
 
   function telaProva(t) {
     var h = '<h1 class="tit-ins" tabindex="-1" data-foco>' + t.tit + '</h1><p class="sub">' + t.sub + '</p>';
-    h += '<div class="depos">' + depoimentosHTML(depoimentosOrdenados(), 3) + '</div>';
+    /* Os prints da tela de prova ficam lado a lado; tocar amplia */
+    var lista = DEPOIMENTOS.filter(function (d) { return d.local !== 'pagina'; });
+    h += '<div class="depos depos-lado">' + depoimentosHTML(lista, 2) + '</div>';
+    if (lista.length) h += '<p class="depos-dica">Toque no print para ampliar.</p>';
     return h + botaoFixo(t.btn);
   }
 
@@ -641,8 +654,6 @@
       h += '<section class="sec ad-pitch"><p class="selo">Hoje × destravado</p><h2 class="tit-sec">Quando ' + adl.quando + '…</h2>' +
         '<div class="adp"><div class="adp-a"><small>Hoje</small><p>' + adl.a + '</p></div><span class="adp-seta" aria-hidden="true">→</span>' +
         '<div class="adp-d"><small>Com ' + trav.nome + ' destravado</small><p>' + adl.d + '</p></div></div>';
-      var dp = DEPOIMENTOS.filter(function (d) { return d.codigo === r.travado; })[0];
-      if (dp) h += depoDaInsercao({ depoCod: r.travado });
       h += '<p class="rolar">↓ Role a tela e veja o seu plano completo ↓</p></section>';
     }
 
@@ -681,12 +692,13 @@
 
     /* H6 — autoridade */
     h += '<section class="sec autoridade"><h2 class="tit-sec">Quem está falando com você</h2>';
-    h += foto({ src: 'dayana-toga.jpg', alt: 'Dayana Martins de toga', ph: 'Foto da Dayana de toga' }, 'foto-aut');
+    h += foto({ src: 'dayana-preto.jpg', alt: 'Dayana Martins', ph: 'Foto da Dayana de vestido preto' }, 'foto-aut');
     h += '<ul class="aut-lista">' + AUTORIDADE.map(function (a) {
       return '<li style="--cor:' + a.cor + '"><span class="aut-ic">' + icone(a.i) + '</span><span>' + a.t + '</span></li>';
     }).join('') + '</ul>';
-    var depos = depoimentosHTML(depoimentosOrdenados().slice(3), 3);
-    if (depos) h += '<div class="depos">' + depos + '</div>';
+    /* Na página de vendas, só o depoimento marcado com local: 'pagina' (os outros ficam na tela de prova) */
+    var dPag = DEPOIMENTOS.filter(function (d) { return d.local === 'pagina'; });
+    if (dPag.length) h += '<h3 class="depos-tit">' + (dPag.length > 1 ? 'O que os alunos me mandaram' : 'O que um aluno me mandou') + '</h3><div class="depos">' + depoimentosHTML(dPag, 3) + '</div>';
     h += '</section>';
 
     /* H7 — para quem é */
@@ -781,7 +793,7 @@
     /* O pitch é o plano: 3 etapas numeradas, a última é a da vitória */
     h += '<section class="sec plano"><p class="selo">O seu plano</p><h2 class="tit-sec">O seu plano em 3 etapas</h2><ol class="etapas">' +
       '<li style="--cor:' + COR_CODIGO[r.travado] + '"><span class="et-n">1</span><div><b>' + fill('Destravar {CODIGO_TRAVADO}') + '</b><p>' + fill('Comece pela Aula {n_aula} e pela sua ação dos próximos 7 dias.') + '</p></div></li>' +
-      '<li style="--cor:#1d2f55"><span class="et-n">2</span><div><b>Colocar os outros 6 códigos de pé</b><p>As outras aulas, com o Método 48, 7 e 30 para revisar no tempo certo e o Diário do Concurseiro para ver a sua evolução.</p></div></li>' +
+      '<li style="--cor:#1d2f55"><span class="et-n">2</span><div><b>Colocar os outros 6 códigos de pé</b><p>As outras aulas, com o Diário do Concurseiro para ver a sua evolução e o Devocional do Concurseiro para começar cada dia.</p></div></li>' +
       '<li class="fim" style="--cor:#a8842f"><span class="et-n">' + icone('coroa') + '</span><div><b>' + fill('Chegar à prova pront{o|a}') + '</b><p>O Protocolo Antitrava para acessar tudo o que você estudou no dia da prova. E, se o resultado não vier, o Protocolo da Reprovação.</p></div></li></ol></section>';
     return h;
   }
@@ -794,8 +806,11 @@
 
   function secBonus(fe) {
     var h = '<section class="sec bonus"><h2 class="tit-sec">E você ainda recebe 5 bônus</h2><div class="bonus-lista">';
-    BONUS.forEach(function (b) {
-      var dest = fe && b.id === 'B3';
+    /* Para quem não é cristão, o devocional (B1) vai para o fim da lista. Quem trava em "direção e fé" vê o devocional marcado como "Para você". */
+    var lista = BONUS.slice();
+    if (fe_tecnica()) lista.push(lista.shift());
+    lista.forEach(function (b) {
+      var dest = fe && b.id === 'B1';
       h += '<article class="bonus-item' + (dest ? ' dest' : '') + '" style="--cor:' + b.cor + '"><span class="bonus-e">' + icone(b.ic) + '</span><div><h3>' + b.tit +
         (dest ? ' <span class="tag tag-sutil">Para você</span>' : '') + '</h3><p>' + fill(b.txt) + '</p>' +
         (b.itens ? (b.rotulo ? '<p class="bonus-rot">' + b.rotulo + '</p>' : '') + '<' + (b.numerado ? 'ol' : 'ul') + ' class="bonus-itens">' +
