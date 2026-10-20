@@ -12,6 +12,12 @@
   var params = new URLSearchParams(location.search);
   var QA = params.get('qa') === '1';
   var PH = !!C.MOSTRAR_ESPACOS_RESERVADOS;
+  /* MODO REVISÃO (só dentro do Hub Mayara): ?revisao=1 com o quiz aberto num quadro.
+     Pula telas sem responder, não grava a sessão e não manda nada (analytics, pixel, webhook, checkout).
+     Os comandos chegam do hub por postMessage e só valem vindos destas origens. */
+  var REV = params.get('revisao') === '1' && window.parent !== window;
+  var HUB_ORIGENS = /^(https:\/\/([a-z0-9-]+\.)?meu-hub-5s8\.pages\.dev|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?)$/;
+  var hubOrigem = null;
 
   if (params.get('reset') === '1') { try { sessionStorage.removeItem(KEY); } catch (e) {} }
 
@@ -34,8 +40,8 @@
       leadEnviado: false, leadPendente: false, vistas: {}, diagVisto: false, comecou: false
     };
   }
-  function carregar() { try { var r = sessionStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
-  function salvar() { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function carregar() { if (REV) return null; try { var r = sessionStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+  function salvar() { if (REV) return; try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   var S = carregar() || novaSessao();
   var A = S.A;
 
@@ -87,12 +93,13 @@
   /* ------------------------------ TRACKING ------------------------------ */
   window.dataLayer = window.dataLayer || [];
   function track(ev, dados) {
+    if (REV) return;
     var d = Object.assign({ event: ev, session_id: S.sid }, dados || {});
     window.dataLayer.push(d);
     if (QA) console.log('[track]', ev, dados || '');
   }
-  function fbq() { if (typeof window.fbq === 'function') window.fbq.apply(null, arguments); }
-  if (C.META_PIXEL_ID) {
+  function fbq() { if (!REV && typeof window.fbq === 'function') window.fbq.apply(null, arguments); }
+  if (C.META_PIXEL_ID && !REV) {
     /* Meta Pixel */
     !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
       if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0;
@@ -210,7 +217,7 @@
     };
   }
   function enviarLead() {
-    if (!C.WEBHOOK_URL || S.leadEnviado) return;
+    if (REV || !C.WEBHOOK_URL || S.leadEnviado) return;
     var corpo = JSON.stringify(payload());
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
@@ -219,7 +226,7 @@
       .catch(function () { clearTimeout(timer); S.leadPendente = true; salvar(); });
   }
   window.addEventListener('pagehide', function () {
-    if (C.WEBHOOK_URL && S.lead && !S.leadEnviado && navigator.sendBeacon) {
+    if (!REV && C.WEBHOOK_URL && S.lead && !S.leadEnviado && navigator.sendBeacon) {
       try { navigator.sendBeacon(C.WEBHOOK_URL, new Blob([JSON.stringify(payload())], { type: 'application/json' })); } catch (e) {}
     }
   });
@@ -377,6 +384,7 @@
       track('s' + (n < 10 ? '0' : '') + n + '_' + t.id.toLowerCase(), { tela: t.id, tipo: t.t });
     }
     if (QA) painelQA();
+    avisarHub();
   }
 
   /* ------------------------------ TELAS ------------------------------ */
@@ -1030,6 +1038,7 @@
   }
 
   function irCheckout(origem) {
+    if (REV) { aviso('Modo revisão: o botão de compra não abre o checkout.'); return; }
     track('checkout_click', { origem: origem, codigo: R && R.travado });
     fbq('track', 'InitiateCheckout', { value: 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
     var u = urlCheckout(origem);
@@ -1053,10 +1062,60 @@
   }
   window.__quiz = { estado: function () { return S; }, calcular: calcular, payload: payload, ir: function (id) { var i = idxDe(id); if (i >= 0) { S.pos = i; desenhar(); } } };
 
+  /* ------------------------------ MODO REVISÃO (Hub Mayara) ------------------------------ */
+  /* O hub manda { quizRevisao: 1, acao: 'ola' | 'proxima' | 'anterior' | 'ir', tela } e recebe a lista de telas e a tela atual.
+     "Próxima" segue a ordem do data.js e mostra também as telas que dependem de resposta (O1 a O5). */
+  var ROTULO_TIPO = { gender: 'Capa', diag: 'Diagnóstico', captura: 'Formulário', resultado: 'Resultado e página de vendas', antesdepois: 'Antes e depois', prova: 'Depoimentos' };
+  function textoPuro(s) {
+    try { return (new DOMParser().parseFromString(String(s), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); }
+    catch (e) { return String(s).replace(/<[^>]*>/g, ''); }
+  }
+  function tituloTela(t) {
+    var s = t.t === 'gender' ? t.tit : (t.q || t.tit || '');
+    if (typeof s === 'function') s = s(A);
+    s = s ? textoPuro(fill(s)) : '';
+    var rot = ROTULO_TIPO[t.t];
+    s = rot ? rot + (s && t.t !== 'resultado' ? ': ' + s : '') : s;
+    return s.length > 110 ? s.slice(0, 109) + '…' : s;
+  }
+  function avisarHub() {
+    if (!REV || !hubOrigem) return;
+    var t = TELAS[S.pos];
+    try {
+      window.parent.postMessage({ quizRevisao: 1, tela: t.id, titulo: tituloTela(t),
+        telas: TELAS.map(function (x) { return { id: x.id, titulo: tituloTela(x), depende: !!x.show }; }) }, hubOrigem);
+    } catch (e) {}
+  }
+  /* Página de vendas aberta direto: nome e respostas de exemplo (1ª opção do que não foi respondido), só para ver a página. */
+  function prepararExemplo() {
+    TELAS.forEach(function (t) {
+      if (['gender', 'q', 'e', 'm'].indexOf(t.t) < 0 || A[t.id] || !visivel(t)) return;
+      A[t.id] = { idx: [0] };
+    });
+    if (!S.lead) S.lead = { nome: ehMulher() ? 'Maria' : 'João', exemplo: true };
+  }
+  if (REV) {
+    window.addEventListener('message', function (ev) {
+      if (ev.source !== window.parent || !HUB_ORIGENS.test(ev.origin)) return;
+      var d = ev.data || {};
+      if (d.quizRevisao !== 1) return;
+      hubOrigem = ev.origin;
+      var i = S.pos;
+      if (d.acao === 'proxima') i = Math.min(S.pos + 1, TELAS.length - 1);
+      else if (d.acao === 'anterior') i = Math.max(S.pos - 1, 0);
+      else if (d.acao === 'ir') i = idxDe(String(d.tela || ''));
+      if (i < 0 || i === S.pos) { avisarHub(); return; }
+      if (TELAS[i].t === 'resultado') prepararExemplo();
+      S.pilha.push(S.pos);
+      S.pos = i;
+      desenhar();
+    });
+  }
+
   /* ------------------------------ INÍCIO ------------------------------ */
   var pular = params.get('tela');
   if (pular && idxDe(pular) >= 0) S.pos = idxDe(pular);
-  if (TELAS[S.pos] && TELAS[S.pos].t === 'resultado' && !S.lead) S.pos = idxDe('CAPTURA');
-  if (!TELAS[S.pos] || !visivel(TELAS[S.pos])) S.pos = 0;
+  if (TELAS[S.pos] && TELAS[S.pos].t === 'resultado' && !S.lead) { if (REV) prepararExemplo(); else S.pos = idxDe('CAPTURA'); }
+  if (!TELAS[S.pos] || (!REV && !visivel(TELAS[S.pos]))) S.pos = 0;
   desenhar();
 })();
