@@ -136,6 +136,22 @@ const TELAS = [
          { txt: 'De 35 a 44 anos', e: '💪', img: 'idade-{g}-3.jpg' },
          { txt: '45 anos ou mais', e: '👑', img: 'idade-{g}-4.jpg' } ] },
 
+  /* Pedido da Mayara (26/10/2026): filhos e celular entraram nas 6 primeiras perguntas, junto com G1, G2, P6 (fé) e P1 (carreira). */
+  { id: 'G3', t: 'q', q: 'Você tem filhos?',
+    o: [ { txt: 'Sim', e: '👶' }, { txt: 'Não', e: '🙅' } ] },
+
+  /* 4ª pergunta: fé (pedido da Mayara, 26/10/2026, movida para as primeiras perguntas). idx 2 = não cristão → versículos viram nota de rodapé (fe_tecnica em app.js). Nunca vai para o CRM. */
+  { id: 'P6', t: 'q', q: 'Você é crist{ão|ã}?',
+    sub: 'Não existe resposta certa. Isso só muda a forma como eu te mostro o resultado.',
+    o: [ { txt: 'Sim, sou crist{ão|ã}', e: '🙏' },
+         { txt: 'Não, mas tenho fé em Deus', e: '🕊️' },
+         { txt: 'Não sou crist{ão|ã}', e: '🤝' } ] },
+
+  { id: 'G4', t: 'q', q: 'Quanto tempo você fica no celular?',
+    sub: 'Pense num dia comum, fora do tempo de estudo.',
+    o: [ { txt: 'Menos de 1 hora', e: '📵' }, { txt: 'De 1 a 3 horas', e: '📱' },
+         { txt: 'De 3 a 5 horas', e: '⏳' }, { txt: 'Mais de 5 horas', e: '🔁' } ] },
+
   { id: 'P1', t: 'q', q: 'Para qual carreira você está se preparando?',
     o: [ { txt: 'Magistratura', e: '⚖️' }, { txt: 'Ministério Público', e: '🏛️' },
          { txt: 'Delegado de Polícia', e: '🛡️' }, { txt: 'Tribunais (analista ou técnico)', e: '📂' },
@@ -158,14 +174,6 @@ const TELAS = [
   { id: 'P5', t: 'q', q: 'Sendo realista: quantas horas por dia você consegue estudar?',
     o: [ { txt: 'Menos de 2 horas', e: '⏱️' }, { txt: 'De 2 a 4 horas', e: '🕑' },
          { txt: 'De 4 a 6 horas', e: '🕓' }, { txt: 'Mais de 6 horas', e: '🕕' } ] },
-
-
-  /* 8ª pergunta: fé (última genérica; a skill pede nada sensível no começo). idx 2 = não cristão → versículos viram nota de rodapé (fe_tecnica em app.js). Nunca vai para o CRM. */
-  { id: 'P6', t: 'q', q: 'Você é crist{ão|ã}?',
-    sub: 'Não existe resposta certa. Isso só muda a forma como eu te mostro o resultado.',
-    o: [ { txt: 'Sim, sou crist{ão|ã}', e: '🙏' },
-         { txt: 'Não, mas tenho fé em Deus', e: '🕊️' },
-         { txt: 'Não sou crist{ão|ã}', e: '🤝' } ] },
 
   { id: 'I1', t: 'ins', icone: 'balanca', fundo: 'dayana-toga.jpg', retrato: true, foco: '62% 6%',
     tit: A => is(A, 'P2', 4) ? 'Mais de 5 anos. Eu sei o peso disso. E quero te mostrar uma coisa.'

@@ -554,9 +554,9 @@
 
   function telaProva(t) {
     var h = '<h1 class="tit-ins" tabindex="-1" data-foco>' + t.tit + '</h1><p class="sub">' + t.sub + '</p>';
-    /* Os prints da tela de prova ficam lado a lado; tocar amplia */
+    /* Os prints da tela de prova ficam um abaixo do outro; tocar amplia */
     var lista = DEPOIMENTOS.filter(function (d) { return d.local !== 'pagina'; });
-    h += '<div class="depos depos-lado">' + depoimentosHTML(lista, 2) + '</div>';
+    h += '<div class="depos">' + depoimentosHTML(lista, 2) + '</div>';
     if (lista.length) h += '<p class="depos-dica">Toque no print para ampliar.</p>';
     return h + botaoFixo(t.btn);
   }
@@ -914,14 +914,14 @@
       if (!S.diagVisto) {
         var nomes = ['PRÁTICA', 'SEMEAR', 'CRIAR RAIZ', 'NÃO DUVIDAR', 'POSICIONAMENTO', 'GESTAR', 'PERSEVERANÇA'], k = 0;
         var $c = document.getElementById('diag-cod');
-        var iv = setInterval(function () { k = (k + 1) % nomes.length; $c.textContent = nomes[k]; }, 400);
+        var iv = setInterval(function () { k = (k + 1) % nomes.length; $c.textContent = nomes[k]; }, 150);
         var to = setTimeout(function () {
           clearInterval(iv);
           S.diagVisto = true; salvar();
           document.getElementById('diag-load').hidden = true;
           var d = document.getElementById('diag'); d.hidden = false;
           var f = d.querySelector('[data-foco]'); if (f) f.focus({ preventScroll: true });
-        }, 3000);
+        }, 1300);
         limpeza = function () { clearInterval(iv); clearTimeout(to); };
       }
     }

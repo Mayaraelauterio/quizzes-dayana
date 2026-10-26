@@ -33,7 +33,9 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
   font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  display: flex; flex-direction: column;
 }
+.topo { flex: none; }
 button, input { font: inherit; color: inherit; }
 img { max-width: 100%; display: block; }
 a { color: var(--ouro-texto); }
@@ -57,7 +59,7 @@ h1:focus, h2:focus { outline: none; }
 body.modo-resultado .barra { display: none; }
 
 /* ---------------- Coluna ---------------- */
-.app { max-width: var(--col); margin: 0 auto; padding: 20px 16px 0; }
+.app { max-width: var(--col); margin: 0 auto; padding: 20px 16px 0; flex: 1 1 auto; width: 100%; display: flex; flex-direction: column; }
 .tela { animation: entra .3s ease both; }
 @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .tela { animation: none; } .barra i, .trilho i { transition: none !important; } }
@@ -751,3 +753,13 @@ body.ins-c6 .tela-ins .depo-ins { display: none; }
 .zoom { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; overflow: auto; padding: 56px 16px 16px; background: rgba(0, 0, 0, .88); cursor: zoom-out; }
 .zoom img { display: block; max-width: min(100%, 520px); height: auto; border-radius: 10px; }
 .zoom-x { position: fixed; top: 12px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff; color: #111; font-size: 24px; line-height: 1; cursor: pointer; }
+
+/* ==========================================================================
+   v2.3 — pedido da Mayara (26/10/2026): perguntas centralizadas (celular e computador)
+   ========================================================================== */
+.hero, .hero-sub, .tempo, .pergunta, .pergunta-capa, .sub, .frase, .incentivo { text-align: center; justify-content: center; }
+.frase { border-left: 0; border-radius: var(--r); }
+
+/* Perguntas no meio da tela (vertical), não só no meio da coluna: só nas telas de pergunta,
+   as outras (inserção, diagnóstico, captura, resultado) mantêm o layout próprio. */
+.tela-q > .tela, .tela-m > .tela, .tela-e > .tela, .tela-gender > .tela { margin-top: auto; margin-bottom: auto; width: 100%; }
