@@ -13,7 +13,7 @@ window.CONFIG = {
   /* Pré-visualização local (não é a versão publicada): toca o arquivo direto da pasta assets/video/.
      Some sozinho quando VIDEO_EMBED_URL estiver preenchido. Não sobe para o site publicado (arquivo
      grande demais para o GitHub Pages) — serve só para a Mayara ver como o vídeo fica na página. */
-  VIDEO_LOCAL_SRC: '',
+  VIDEO_LOCAL_SRC: 'assets/video/Bem-vindo.mp4',
 
   /* Link de acesso ao produto (área de membros, Hotmart, Google Drive...). Vazio = o botão não aparece. */
   ACESSO_URL: '',
