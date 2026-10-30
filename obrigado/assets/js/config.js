@@ -8,12 +8,12 @@ window.CONFIG = {
      ou no Vimeo (não precisa ser público) e cole aqui o link de incorporar (embed):
      YouTube: https://www.youtube.com/embed/ID_DO_VIDEO
      Vimeo:   https://player.vimeo.com/video/ID_DO_VIDEO */
-  VIDEO_EMBED_URL: '',
+  VIDEO_EMBED_URL: 'https://www.youtube.com/embed/AI3nJmTr7xw',
 
   /* Pré-visualização local (não é a versão publicada): toca o arquivo direto da pasta assets/video/.
      Some sozinho quando VIDEO_EMBED_URL estiver preenchido. Não sobe para o site publicado (arquivo
      grande demais para o GitHub Pages) — serve só para a Mayara ver como o vídeo fica na página. */
-  VIDEO_LOCAL_SRC: 'assets/video/Bem-vindo.mp4',
+  VIDEO_LOCAL_SRC: '',
 
   /* Link de acesso ao produto (área de membros, Hotmart, Google Drive...). Vazio = o botão não aparece. */
   ACESSO_URL: '',
