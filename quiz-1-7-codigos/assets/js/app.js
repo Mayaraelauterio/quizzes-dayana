@@ -198,6 +198,16 @@
              acao: acoes[grade], signals: sinais.slice(0, 3), version: REGRA_VERSAO };
   }
 
+  /* Escolhe a faixa de preço (config.js → PRECOS) pela pontuação do lead score. null = usa C.PRECO/C.CHECKOUT_URL (preço único). */
+  function escolherPreco() {
+    if (!C.PRECOS || !C.PRECOS.length) return null;
+    var pts = leadScore().score;
+    var ordenado = C.PRECOS.slice().sort(function (a, b) { return a.min - b.min; });
+    var t = ordenado[0];
+    ordenado.forEach(function (x) { if (pts >= x.min) t = x; });
+    return t;
+  }
+
   /* ------------------------------ ENVIO DO LEAD ------------------------------ */
   function payload() {
     var r = R || calcular();
@@ -213,7 +223,7 @@
       url: S.url, referrer: S.ref, utms: S.utms,
       lead: S.lead, respostas: respostas,
       codigos: r.scores, codigo_travado: r.travado, codigo_forte: r.forte, segundo_codigo: r.segundo,
-      lead_score: leadScore()
+      lead_score: leadScore(), preco_oferecido: (escolherPreco() || {}).preco || C.PRECO || null
     };
   }
   function enviarLead() {
@@ -715,13 +725,14 @@
       '<div class="quem-nao"><b>Não é para você se:</b><ul>' + PARA_QUEM_NAO_E.map(function (x) { return '<li>' + icone('proibido') + '<span>' + x + '</span></li>'; }).join('') + '</ul></div></div></section>';
 
     /* H8 — oferta */
+    var tier = escolherPreco();
     h += '<section class="sec oferta" id="oferta"><div class="oferta-box"><h2 class="tit-sec">Tudo o que você recebe hoje</h2><ul class="check">' +
       OFERTA_ITENS.map(function (x) {
         var b = x.b ? bonusPorId(x.b) : null;
         return '<li><span>' + x.t + '</span>' + (b ? '<s>' + reais(b.valor) + '</s>' : '') + '</li>';
       }).join('') + '</ul>' +
       '<p class="de">de <s>' + reais(totalBonus()) + '</s></p>' +
-      '<p class="preco"><small>por</small> ' + esc(C.PRECO || 'R$ 47,00') + ' <small>à vista</small></p>' +
+      '<p class="preco"><small>por</small> ' + esc((tier && tier.preco) || C.PRECO || 'R$ 47,00') + ' <small>à vista</small></p>' +
       (C.PARCELAS_TEXTO ? '<p class="parcelas">' + esc(C.PARCELAS_TEXTO) + '</p>' : '') +
       botaoCheckout('cta-oferta') +
       '<p class="seguro">Pagamento seguro · Garantia de 7 dias' + (C.ACESSO_TEXTO ? ' · ' + esc(C.ACESSO_TEXTO) : '') + '</p>' +
@@ -846,14 +857,15 @@
   }
 
   function urlCheckout(origem) {
-    if (!C.CHECKOUT_URL) return '';
+    var base = (escolherPreco() || {}).checkout || C.CHECKOUT_URL;
+    if (!base) return '';
     try {
-      var u = new URL(C.CHECKOUT_URL);
+      var u = new URL(base);
       Object.keys(S.utms || {}).forEach(function (k) { if (!u.searchParams.has(k)) u.searchParams.set(k, S.utms[k]); });
       u.searchParams.set('src', 'quiz-7-codigos');
       if (R) u.searchParams.set('sck', 'codigo-' + R.travado + '-' + origem);
       return u.toString();
-    } catch (e) { return C.CHECKOUT_URL; }
+    } catch (e) { return base; }
   }
 
   /* ------------------------------ EVENTOS DAS TELAS ------------------------------ */
@@ -1039,8 +1051,9 @@
 
   function irCheckout(origem) {
     if (REV) { aviso('Modo revisão: o botão de compra não abre o checkout.'); return; }
-    track('checkout_click', { origem: origem, codigo: R && R.travado });
-    fbq('track', 'InitiateCheckout', { value: 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
+    var tier = escolherPreco();
+    track('checkout_click', { origem: origem, codigo: R && R.travado, preco: (tier && tier.preco) || C.PRECO });
+    fbq('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
     var u = urlCheckout(origem);
     if (u) { window.location.href = u; return; }
     aviso('Checkout ainda não configurado (config.js → CHECKOUT_URL).');

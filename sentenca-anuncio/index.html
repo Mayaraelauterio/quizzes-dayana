@@ -802,8 +802,39 @@ function toast(msg) {
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2600);
 }
 const TBD = `<span class="tbd">a definir</span>`;
-/* Link do checkout de verdade (Green, Os 7 Códigos da Aprovação · R$47). Vazio = o botão fica fixo na tela, mas avisa que ainda falta configurar. */
+
+/* Preço por faixa de pontuação do lead (ver leadScoreComercial() abaixo: carreira, tempo de estudo, provas já
+   feitas e disposição — a mesma lógica do Quiz 1). Da pontuação mínima mais baixa (lead mais frio, preço menor)
+   para a mais alta (lead mais quente, preço maior). PRECOS vazio = usa CHECKOUT_URL abaixo, um preço só para todo mundo. */
+const PRECOS = [
+  { min: 0,  preco: "R$47",  valor: 47,  checkout: "https://payfast.greenn.com.br/200695/offer/tqH6qo" },
+  { min: 20, preco: "R$67",  valor: 67,  checkout: "https://payfast.greenn.com.br/200695/offer/vk5ZMe" },
+  { min: 40, preco: "R$87",  valor: 87,  checkout: "https://payfast.greenn.com.br/200695/offer/wzB3JK" },
+  { min: 60, preco: "R$127", valor: 127, checkout: "https://payfast.greenn.com.br/200695/offer/Q6LL86" },
+  { min: 80, preco: "R$147", valor: 147, checkout: "https://payfast.greenn.com.br/200695/offer/IPyWYP" }
+];
+/* Link do checkout de verdade, usado só se PRECOS estiver vazio. */
 const CHECKOUT_URL = '';
+
+/* Pontuação comercial do lead (0 a 100), mesma lógica e pesos do Quiz 1 (leadScore() em quiz-aprovacao/quiz/assets/js/app.js),
+   adaptada aos campos desta página. Usada só para escolher a faixa de preço (escolherPreco()), não muda o resultado do teste. */
+function leadScoreComercial() {
+  let s = 0;
+  s += { mag: 25, mp: 25, del: 20, trib: 15, oab: 10 }[A.carreira] || 0;
+  s += { a1: 10, a3: 20, a5: 20, a5p: 15 }[A.tempo] || 0;
+  s += { nenhuma: 5, p2: 15, p5: 20, p5p: 20 }[A.provas] || 0;
+  s += { decidi: 25, muito: 20, medo: 10, curioso: 0 }[A.disposicao] || 0;
+  if (A.trava === "alguem") s += 10;
+  return s;
+}
+function escolherPreco() {
+  if (!PRECOS.length) return null;
+  const pts = leadScoreComercial();
+  const ordenado = [...PRECOS].sort((a, b) => a.min - b.min);
+  let t = ordenado[0];
+  ordenado.forEach(x => { if (pts >= x.min) t = x; });
+  return t;
+}
 
 /* ---------- bônus (os mesmos do quiz 1; valores de referência definidos pela Mayara) ---------- */
 const BONUS = [
@@ -1454,12 +1485,15 @@ const S = [
       const bonus = BONUS;
       const total = BONUS.reduce((s, b) => s + b.valor, 0);
       const fx = s => s.replace("{o|a}", g("o", "a"));
+      const tier = escolherPreco();
+      const precoValor = (tier && tier.valor) || 47;
+      const precoTxt = (tier && tier.preco) || "R$47";
       const priceBox = `<div class="mm-price">
-          <div class="mm-price-h">${Math.floor((1 - 47 / total) * 100)}% OFF</div>
+          <div class="mm-price-h">${Math.floor((1 - precoValor / total) * 100)}% OFF</div>
           <div class="mm-price-b"><b>Os 7 Códigos da Aprovação para ${nome || "você"} começar por ${COD[t].nome} e chegar à prova ${g("pronto", "pronta")}</b>
-            <div class="mm-price-v"><small>De: <s>${brl(total)}</s> por</small><strong>R$47</strong><small>pagamento único</small></div></div>
+            <div class="mm-price-v"><small>De: <s>${brl(total)}</s> por</small><strong>${precoTxt}</strong><small>pagamento único</small></div></div>
           <ul class="mm-price-why">
-            <li>Menos de <b>R$1,60 por dia</b> durante um mês</li>
+            <li>Menos de <b>${brl(Math.ceil(precoValor / 30 * 100) / 100)} por dia</b> durante um mês</li>
             <li>Menos do que <b>uma aula avulsa</b> de cursinho</li>
           </ul>
         </div>
@@ -1545,7 +1579,9 @@ const S = [
         <p><b>Aviso legal:</b> produto digital educacional. Não é curso preparatório nem aula de Direito. Os resultados dependem do estudo e da dedicação de cada pessoa. <b>Não há garantia de aprovação.</b> Garantia legal de 7 dias (art. 49 do CDC).</p>
       </footer>`; },
     onCta: () => {
-      if (CHECKOUT_URL) { window.location.href = CHECKOUT_URL; return false; }
+      const tier = escolherPreco();
+      const url = (tier && tier.checkout) || CHECKOUT_URL;
+      if (url) { window.location.href = url; return false; }
       toast("Checkout ainda não configurado (CHECKOUT_URL no topo do arquivo).");
       return false;
     } },
