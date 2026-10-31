@@ -1444,7 +1444,7 @@ const S = [
     onShow: () => loader(["Separando a sua aula de início", "Escolhendo o bônus da sua trava", "Finalizando o seu plano"]) },
 
   /* ================= PÁGINA DE VENDAS (rola; botão fixo) ================= */
-  { id: "fase5", scroll: true, cta: "QUERO DESTRAVAR O MEU CÓDIGO", render: () => {
+  { id: "fase5", scroll: true, cta: "", render: () => {
       const nome = esc(A.nome || "");
       const t = travado();
       const hot = TRAVA_BONUS[A.trava];
@@ -1540,62 +1540,8 @@ const S = [
 
       <footer class="v-foot">
         <p>Copyright © 2026 · Dayana Martins · Todos os direitos reservados.</p>
-        <p><b>Razão social ${TBD}</b> · CNPJ ${TBD}</p>
         <p><b>Aviso legal:</b> produto digital educacional. Não é curso preparatório nem aula de Direito. Os resultados dependem do estudo e da dedicação de cada pessoa. <b>Não há garantia de aprovação.</b> Garantia legal de 7 dias (art. 49 do CDC).</p>
-      </footer>`; },
-    onCta: () => true },
-
-  /* ================= CHECKOUT (protótipo visual) ================= */
-  { id: "checkout", scroll: true, cta: "FINALIZAR COMPRA · R$47", render: () => `
-      <div class="ck-top"><span>🔒 Pagamento 100% seguro</span><span>Plataforma ${TBD}</span></div>
-      <div class="ck-prod">
-        <img class="ck-cover" src="img/dayana-avatar-toga.jpg" alt="Dayana Martins">
-        <div><b>Os 7 Códigos da Aprovação</b><small>7 aulas + aula bônus + 5 bônus · acesso por e-mail</small><p class="ck-price">R$47</p></div>
-      </div>
-      <form class="ck-form" id="ck" novalidate>
-        <h3 class="ck-h">1. Seus dados</h3>
-        <label for="ck-nome">Nome completo<input id="ck-nome" type="text" autocomplete="name" value="${esc(A.nome || "")}" placeholder="Seu nome completo"></label>
-        <label for="ck-email">E-mail<input id="ck-email" type="email" autocomplete="email" value="${esc(A.email || "")}" placeholder="Seu melhor e-mail"></label>
-        <div class="ck-2">
-          <label for="ck-cpf">CPF<input id="ck-cpf" type="text" inputmode="numeric" placeholder="000.000.000-00"></label>
-          <label for="ck-whats">WhatsApp<input id="ck-whats" type="tel" value="${esc(A.whats || "")}" placeholder="(62) 99999-9999"></label>
-        </div>
-        <h3 class="ck-h">2. Pagamento</h3>
-        <div class="ck-pay" role="tablist">
-          <button type="button" class="on" data-pay="pix" role="tab" aria-selected="true">Pix</button>
-          <button type="button" data-pay="cartao" role="tab" aria-selected="false">Cartão</button>
-        </div>
-        <div class="ck-panel" data-panel="pix"><p>✓ Aprovação imediata. O QR Code aparece depois de finalizar.</p></div>
-        <div class="ck-panel" data-panel="cartao" hidden>
-          <p class="ck-note">No protótipo os campos do cartão ficam desativados. Na página real eles vêm da plataforma de pagamento.</p>
-          <label>Número do cartão<input type="text" disabled placeholder="•••• •••• •••• ••••"></label>
-          <div class="ck-2"><label>Validade<input type="text" disabled placeholder="MM/AA"></label><label>CVV<input type="text" disabled placeholder="•••"></label></div>
-        </div>
-        <div class="ck-sum"><div class="tot"><span>Total</span><b>R$47,00</b></div></div>
-        <p class="ck-err" id="ck-err" role="alert" hidden></p>
-      </form>
-      <div class="ck-trust">
-        <div><b>🛡️ Garantia de 7 dias</b><small>100% do seu dinheiro de volta</small></div>
-        <div><b>⚡ Acesso por e-mail</b><small>logo após a compra</small></div>
-      </div>
-      <p class="ck-legal">Ao finalizar, você concorda com os Termos de Uso e a Política de Privacidade. Vendido por ${TBD} · CNPJ ${TBD}.</p>`,
-    onShow: () => {
-      app.querySelectorAll("[data-pay]").forEach(b => b.addEventListener("click", () => {
-        app.querySelectorAll("[data-pay]").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); });
-        app.querySelectorAll("[data-panel]").forEach(pnl => pnl.hidden = pnl.dataset.panel !== b.dataset.pay);
-      }));
-      const cpf = document.getElementById("ck-cpf");
-      cpf.addEventListener("input", () => { const d = cpf.value.replace(/\D/g, "").slice(0, 11); cpf.value = d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2"); });
-      document.getElementById("ck").addEventListener("submit", e => { e.preventDefault(); cta.click(); });
-    },
-    onCta: () => {
-      const err = document.getElementById("ck-err");
-      const miss = [["ck-nome", "o nome completo"], ["ck-email", "o e-mail"], ["ck-cpf", "o CPF"]].find(([id]) => !document.getElementById(id).value.trim());
-      if (miss) { err.textContent = `Preencha ${miss[1]} para continuar.`; err.hidden = false; document.getElementById(miss[0]).focus(); return false; }
-      err.hidden = true;
-      A.nome = (document.getElementById("ck-nome").value.trim().split(" ")[0]) || A.nome;
-      return true;
-    } },
+      </footer>`; } },
 
   /* ================= OBRIGADO + PRÓXIMO PASSO ================= */
   { id: "obrigado", scroll: true, cta: "QUERO ENTRAR NA LISTA VIP", render: () => {
@@ -1713,7 +1659,7 @@ const EX2 = { rotina: "aulas", assunto: "lembra", voltas: "uma", cargo: "sonho",
 const EX3 = { deus: "parte", cadeira: "medo", frases: ["loteria", "passa"], lista: "servir", quem: "pais" };
 const EX4 = { trava: "constancia", disposicao: "muito", nome: "Ana", email: "ana@exemplo.com", whats: "(62) 99999-8888", acredita: "direcao" };
 const TUDO = { ...EX1, ...EX2, ...EX3, ...EX4 };
-const JUMP = { "#fase2": ["fase2", EX1], "#fase3": ["fase3", { ...EX1, ...EX2 }], "#fase4": ["fase4", { ...EX1, ...EX2, ...EX3 }], "#sentenca": ["sentenca", TUDO], "#fase5": ["fase5", TUDO], "#checkout": ["checkout", TUDO], "#obrigado": ["obrigado", TUDO] };
+const JUMP = { "#fase2": ["fase2", EX1], "#fase3": ["fase3", { ...EX1, ...EX2 }], "#fase4": ["fase4", { ...EX1, ...EX2, ...EX3 }], "#sentenca": ["sentenca", TUDO], "#fase5": ["fase5", TUDO], "#obrigado": ["obrigado", TUDO] };
 let jump = JUMP[location.hash];
 const tN = /^#t(\d+)$/.exec(location.hash);
 if (!jump && tN) { const idx = S.findIndex(x => x.n === Number(tN[1])); if (idx >= 0) { S[idx].id = S[idx].id || "t" + tN[1]; jump = [S[idx].id, TUDO]; } }
