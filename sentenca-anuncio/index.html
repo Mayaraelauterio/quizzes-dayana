@@ -802,6 +802,8 @@ function toast(msg) {
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2600);
 }
 const TBD = `<span class="tbd">a definir</span>`;
+/* Link do checkout de verdade (Green, Os 7 Códigos da Aprovação · R$47). Vazio = o botão fica fixo na tela, mas avisa que ainda falta configurar. */
+const CHECKOUT_URL = '';
 
 /* ---------- bônus (os mesmos do quiz 1; valores de referência definidos pela Mayara) ---------- */
 const BONUS = [
@@ -1444,7 +1446,7 @@ const S = [
     onShow: () => loader(["Separando a sua aula de início", "Escolhendo o bônus da sua trava", "Finalizando o seu plano"]) },
 
   /* ================= PÁGINA DE VENDAS (rola; botão fixo) ================= */
-  { id: "fase5", scroll: true, cta: "", render: () => {
+  { id: "fase5", scroll: true, cta: "QUERO DESTRAVAR O MEU CÓDIGO", render: () => {
       const nome = esc(A.nome || "");
       const t = travado();
       const hot = TRAVA_BONUS[A.trava];
@@ -1541,7 +1543,12 @@ const S = [
       <footer class="v-foot">
         <p>Copyright © 2026 · Dayana Martins · Todos os direitos reservados.</p>
         <p><b>Aviso legal:</b> produto digital educacional. Não é curso preparatório nem aula de Direito. Os resultados dependem do estudo e da dedicação de cada pessoa. <b>Não há garantia de aprovação.</b> Garantia legal de 7 dias (art. 49 do CDC).</p>
-      </footer>`; } },
+      </footer>`; },
+    onCta: () => {
+      if (CHECKOUT_URL) { window.location.href = CHECKOUT_URL; return false; }
+      toast("Checkout ainda não configurado (CHECKOUT_URL no topo do arquivo).");
+      return false;
+    } },
 
   /* ================= OBRIGADO + PRÓXIMO PASSO ================= */
   { id: "obrigado", scroll: true, cta: "QUERO ENTRAR NA LISTA VIP", render: () => {
