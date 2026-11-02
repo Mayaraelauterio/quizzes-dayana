@@ -670,6 +670,19 @@ img.ck-cover { padding: 0; display: block; }
    ========================================================================== */
 const A = {};
 const hist = [];
+/* UTMs do anúncio (utm_source, utm_campaign, utm_content...): guardadas na entrada e enviadas junto com o lead,
+   para a planilha saber de qual anúncio ele veio (aba Leads do hub). Valem enquanto a aba do navegador estiver aberta. */
+const UTMS = (() => {
+  const u = {};
+  new URLSearchParams(location.search).forEach((v, k) => {
+    if (/^utm_/i.test(k) || ["fbclid", "gclid", "src", "sck", "xcod"].includes(k.toLowerCase())) u[k] = v.slice(0, 200);
+  });
+  try {
+    if (Object.keys(u).length) sessionStorage.setItem("sentenca_utms", JSON.stringify(u));
+    else return JSON.parse(sessionStorage.getItem("sentenca_utms") || "{}");
+  } catch (e) {}
+  return u;
+})();
 const sexo = () => A.genero === "mulher" ? "m" : "h";
 const g = (m, f) => A.genero === "mulher" ? f : m;
 const temFe = () => A.fe === "sim" || A.fe === "fe";
@@ -824,6 +837,7 @@ function enviarLead() {
   const body = JSON.stringify({
     quiz: "sentenca-anuncio",
     enviado_em: new Date().toISOString(),
+    utms: UTMS,
     lead: { nome: A.nome || "", email: A.email || "", whatsapp: A.whats || "" },
     respostas: { genero: A.genero, idade: A.idade, carreira: A.carreira, momento: A.momento, tempo: A.tempo, trabalho: A.trabalho, provas: A.provas, horas: A.horas, fe: A.fe, edital: A.edital, falta: A.falta, trava: A.trava, disposicao: A.disposicao, acredita: A.acredita },
     codigo_travado: travado(),
