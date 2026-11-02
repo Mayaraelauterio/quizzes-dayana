@@ -816,6 +816,23 @@ const PRECOS = [
 /* Link do checkout de verdade, usado só se PRECOS estiver vazio. */
 const CHECKOUT_URL = '';
 
+/* Webhook que recebe o lead (planilha no Google Sheets). Vazio = ninguém recebe o lead. */
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzNsQcw9ZyJnGBzLefzXcm1eF5eyogjJaSp6nsFFGCP96UrFcRzW3E5PNjrdlq4GYc/exec';
+function enviarLead() {
+  if (!WEBHOOK_URL) return;
+  const tier = escolherPreco();
+  const body = JSON.stringify({
+    quiz: "sentenca-anuncio",
+    enviado_em: new Date().toISOString(),
+    lead: { nome: A.nome || "", email: A.email || "", whatsapp: A.whats || "" },
+    respostas: { genero: A.genero, idade: A.idade, carreira: A.carreira, momento: A.momento, tempo: A.tempo, trabalho: A.trabalho, provas: A.provas, horas: A.horas, fe: A.fe, edital: A.edital, falta: A.falta, trava: A.trava, disposicao: A.disposicao, acredita: A.acredita },
+    codigo_travado: travado(),
+    lead_score_comercial: leadScoreComercial(),
+    preco_oferecido: (tier && tier.preco) || null
+  });
+  try { fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
+}
+
 /* Pontuação comercial do lead (0 a 100), mesma lógica e pesos do Quiz 1 (leadScore() em quiz-aprovacao/quiz/assets/js/app.js),
    adaptada aos campos desta página. Usada só para escolher a faixa de preço (escolherPreco()), não muda o resultado do teste. */
 function leadScoreComercial() {
@@ -1366,6 +1383,7 @@ const S = [
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail("Confira o e-mail: falta o @ ou o domínio.", "f-email");
       if (whats.length < 10) return fail("Digite o WhatsApp com DDD.", "f-whats");
       Object.assign(A, { nome: nome.split(" ")[0], email, whats: document.getElementById("f-whats").value });
+      enviarLead();
       return true;
     } },
 

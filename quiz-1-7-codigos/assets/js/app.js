@@ -231,13 +231,13 @@
     var corpo = JSON.stringify(payload());
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
-    fetch(C.WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: corpo, keepalive: true, signal: ctrl ? ctrl.signal : undefined })
+    fetch(C.WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: corpo, keepalive: true, signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) { clearTimeout(timer); if (!r.ok) throw new Error(r.status); S.leadEnviado = true; S.leadPendente = false; salvar(); })
       .catch(function () { clearTimeout(timer); S.leadPendente = true; salvar(); });
   }
   window.addEventListener('pagehide', function () {
     if (!REV && C.WEBHOOK_URL && S.lead && !S.leadEnviado && navigator.sendBeacon) {
-      try { navigator.sendBeacon(C.WEBHOOK_URL, new Blob([JSON.stringify(payload())], { type: 'application/json' })); } catch (e) {}
+      try { navigator.sendBeacon(C.WEBHOOK_URL, new Blob([JSON.stringify(payload())], { type: 'text/plain;charset=utf-8' })); } catch (e) {}
     }
   });
 

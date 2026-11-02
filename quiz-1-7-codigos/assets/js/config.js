@@ -19,7 +19,7 @@ window.CONFIG = {
   CHECKOUT_URL: '',
 
   /* Webhook que recebe o lead (n8n, Make, CRM). POST em JSON. */
-  WEBHOOK_URL: '',
+  WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbzNsQcw9ZyJnGBzLefzXcm1eF5eyogjJaSp6nsFFGCP96UrFcRzW3E5PNjrdlq4GYc/exec',
 
   /* Meta Pixel (só o número). */
   META_PIXEL_ID: '',
