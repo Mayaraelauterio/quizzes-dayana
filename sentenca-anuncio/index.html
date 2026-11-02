@@ -866,6 +866,18 @@ function escolherPreco() {
   ordenado.forEach(x => { if (pts >= x.min) t = x; });
   return t;
 }
+/* Link do checkout com a etiqueta do anúncio: as UTMs guardadas na entrada, a origem (src) e, com o rastreador do Easy
+   (fyads, no topo da página), o fyid no "sck", para a venda ser atribuída ao anúncio. Sem o rastreador (bloqueador
+   de anúncio), vai só com as UTMs. Não muda o que a pessoa vê. */
+function linkCheckout(base) {
+  try {
+    const u = new URL(base);
+    Object.entries(UTMS || {}).forEach(([k, v]) => { if (!u.searchParams.has(k)) u.searchParams.set(k, v); });
+    u.searchParams.set("src", "quiz-sentenca");
+    const fy = window.fyads;
+    return fy && typeof fy.link === "function" ? fy.link(u.toString()) : u.toString();
+  } catch (e) { return base; }
+}
 
 /* ---------- bônus (os mesmos do quiz 1; valores de referência definidos pela Mayara) ---------- */
 const BONUS = [
@@ -1613,7 +1625,7 @@ const S = [
     onCta: () => {
       const tier = escolherPreco();
       const url = (tier && tier.checkout) || CHECKOUT_URL;
-      if (url) { window.location.href = url; return false; }
+      if (url) { window.location.href = linkCheckout(url); return false; }
       toast("Checkout ainda não configurado (CHECKOUT_URL no topo do arquivo).");
       return false;
     } },

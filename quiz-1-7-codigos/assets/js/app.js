@@ -863,6 +863,10 @@
       var u = new URL(base);
       Object.keys(S.utms || {}).forEach(function (k) { if (!u.searchParams.has(k)) u.searchParams.set(k, S.utms[k]); });
       u.searchParams.set('src', 'quiz-7-codigos');
+      /* Etiqueta do anúncio para o Easy: o rastreador da página (fyads) põe o fyid no "sck" e as UTMs da entrada,
+         para a venda ser atribuída ao anúncio. Por isso o "sck" fica livre para ele. Sem o rastreador
+         (bloqueador de anúncio), o "sck" leva o código e o botão, como antes. */
+      if (window.fyads && typeof window.fyads.link === 'function') return window.fyads.link(u.toString());
       if (R) u.searchParams.set('sck', 'codigo-' + R.travado + '-' + origem);
       return u.toString();
     } catch (e) { return base; }
