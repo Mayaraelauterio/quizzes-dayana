@@ -670,6 +670,8 @@ img.ck-cover { padding: 0; display: block; }
    ========================================================================== */
 const A = {};
 const hist = [];
+/* Hora em que a pessoa entrou na página (início da sessão), para o webhook externo. */
+const ENTRADA = new Date().toISOString();
 /* UTMs do anúncio (utm_source, utm_campaign, utm_content...): guardadas na entrada e enviadas junto com o lead,
    para a planilha saber de qual anúncio ele veio (aba Leads do hub). Valem enquanto a aba do navegador estiver aberta. */
 const UTMS = (() => {
@@ -845,6 +847,13 @@ function enviarLead() {
     preco_oferecido: (tier && tier.preco) || null
   });
   try { fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
+}
+/* Webhook extra (n8n): recebe nome, telefone, e-mail, UTM e hora de entrada de todo lead. Independente do webhook da planilha. */
+const WEBHOOK_N8N_URL = 'https://apps-n8n.cwbnhf.easypanel.host/webhook-test/dayana-quiz2';
+function enviarLeadN8n() {
+  if (!WEBHOOK_N8N_URL) return;
+  const body = JSON.stringify({ nome: A.nome || "", telefone: A.whats || "", email: A.email || "", utm: UTMS, data_hora_entrada: ENTRADA });
+  try { fetch(WEBHOOK_N8N_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
 }
 
 /* Pontuação comercial do lead (0 a 100), mesma lógica e pesos do Quiz 1 (leadScore() em quiz-aprovacao/quiz/assets/js/app.js),
@@ -1410,6 +1419,7 @@ const S = [
       if (whats.length < 10) return fail("Digite o WhatsApp com DDD.", "f-whats");
       Object.assign(A, { nome: nome.split(" ")[0], email, whats: document.getElementById("f-whats").value });
       enviarLead();
+      enviarLeadN8n();
       return true;
     } },
 
