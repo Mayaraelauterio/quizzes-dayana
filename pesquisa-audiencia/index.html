@@ -193,6 +193,21 @@
     justify-content: center;
   }
 
+  .caixa{
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1.5px solid var(--gold);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .caixa svg{ width: 14px; height: 14px; opacity: 0; transition: opacity 0.15s ease; }
+  .opcao[aria-checked="true"] .caixa{ background: var(--gold); }
+  .opcao[aria-checked="true"] .caixa svg{ opacity: 1; color: #fdf9f2; }
+
   .campo-extra{
     display: flex;
     gap: 10px;
@@ -420,6 +435,25 @@
       ]
     },
     {
+      tipo: 'multipla',
+      titulo: 'O que não pode faltar no seu material de estudos?',
+      apoio: 'Marque quantas opções fizerem sentido pra você.',
+      opcoes: [
+        'Cronograma personalizado pelo edital',
+        'Lei seca organizada',
+        'Questões comentadas',
+        'Método de estudo (técnica de aprendizagem e memorização)',
+        'Mentora de IA tirando dúvidas',
+        'Caderno de erros',
+        'Dicionário jurídico',
+        'Jurisprudência atualizada',
+        'Resumos e mapas mentais',
+        'Simulados cronometrados',
+        'Apoio emocional / devocional',
+        { texto: 'Outro', abrirCampo: true, placeholder: 'O que mais?' }
+      ]
+    },
+    {
       tipo: 'aberta',
       titulo: 'Se você pudesse me fazer uma pergunta agora, sobre estudar pra concurso, qual seria?',
       apoio: 'Opcional, mas me ajuda muito a saber o que você precisa ouvir.',
@@ -613,6 +647,89 @@
     elConteudo.appendChild(wrap);
   }
 
+  function renderMultipla(p){
+    var wrap = document.createElement('div');
+    wrap.innerHTML = '<h2 class="titulo">' + p.titulo + '</h2>' + (p.apoio ? '<p class="apoio">' + p.apoio + '</p>' : '');
+
+    var chave = 'p' + estado.passo;
+    var salvo = estado.respostas[chave] || { selecionadas: [], outro: '' };
+    var selecionadas = {};
+    salvo.selecionadas.forEach(function(t){ selecionadas[t] = true; });
+
+    var lista = document.createElement('div');
+    lista.className = 'opcoes';
+    lista.setAttribute('role', 'group');
+
+    var acao = document.createElement('div');
+    acao.className = 'rodape-acao';
+    var btn = document.createElement('button');
+    btn.className = 'btn btn-principal btn-bloco';
+    btn.type = 'button';
+    btn.textContent = 'Continuar';
+    acao.appendChild(btn);
+
+    var campoOutro = null;
+
+    function atualizarBotao(){
+      btn.disabled = !Object.keys(selecionadas).some(function(k){ return selecionadas[k]; });
+    }
+
+    p.opcoes.forEach(function(item){
+      var ehObjeto = typeof item === 'object';
+      var texto = ehObjeto ? item.texto : item;
+      var opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'opcao';
+      opt.setAttribute('role', 'checkbox');
+      opt.setAttribute('aria-checked', selecionadas[texto] ? 'true' : 'false');
+      opt.innerHTML = '<span class="caixa"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>' + texto + '</span>';
+
+      opt.addEventListener('click', function(){
+        var marcado = opt.getAttribute('aria-checked') !== 'true';
+        opt.setAttribute('aria-checked', marcado ? 'true' : 'false');
+        selecionadas[texto] = marcado;
+
+        if(ehObjeto && item.abrirCampo){
+          if(marcado && !campoOutro){
+            campoOutro = document.createElement('div');
+            campoOutro.className = 'campo-extra';
+            campoOutro.innerHTML = '<input type="text" id="campo-outro-multipla" placeholder="' + (item.placeholder || 'Qual?') + '" value="' + (salvo.outro || '').replace(/"/g,'&quot;') + '">';
+            wrap.insertBefore(campoOutro, acao);
+            document.getElementById('campo-outro-multipla').focus();
+          } else if(!marcado && campoOutro){
+            campoOutro.remove();
+            campoOutro = null;
+          }
+        }
+        atualizarBotao();
+      });
+      lista.appendChild(opt);
+    });
+
+    wrap.appendChild(lista);
+
+    p.opcoes.forEach(function(item){
+      var ehObjeto = typeof item === 'object';
+      if(ehObjeto && item.abrirCampo && selecionadas[item.texto] && !campoOutro){
+        campoOutro = document.createElement('div');
+        campoOutro.className = 'campo-extra';
+        campoOutro.innerHTML = '<input type="text" id="campo-outro-multipla" placeholder="' + (item.placeholder || 'Qual?') + '" value="' + (salvo.outro || '').replace(/"/g,'&quot;') + '">';
+        wrap.appendChild(campoOutro);
+      }
+    });
+
+    wrap.appendChild(acao);
+    elConteudo.appendChild(wrap);
+    atualizarBotao();
+
+    btn.addEventListener('click', function(){
+      var marcadas = Object.keys(selecionadas).filter(function(k){ return selecionadas[k]; });
+      var outroVal = campoOutro ? document.getElementById('campo-outro-multipla').value.trim() : '';
+      estado.respostas[chave] = { selecionadas: marcadas, outro: outroVal };
+      ir(estado.passo + 1);
+    });
+  }
+
   function renderAberta(p){
     var wrap = document.createElement('div');
     wrap.innerHTML = '<h2 class="titulo">' + p.titulo + '</h2>' + (p.apoio ? '<p class="apoio">' + p.apoio + '</p>' : '');
@@ -663,6 +780,7 @@
     var p = perguntas[estado.passo];
     if(p.tipo === 'form') renderForm(p);
     else if(p.tipo === 'escolha') renderEscolha(p);
+    else if(p.tipo === 'multipla') renderMultipla(p);
     else if(p.tipo === 'aberta') renderAberta(p);
   }
 
