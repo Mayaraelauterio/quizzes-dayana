@@ -3,3 +3,4 @@
 Versões aprovadas em 08/10/2026, publicadas pelo GitHub Pages para teste no celular.
 - Quiz 1 · Os 7 Códigos da Aprovação (v2.2): `quiz-1-7-codigos/`
 - Quiz 2 · As 7 Colunas (v1.6): `quiz-2-7-colunas/`
+- Pesquisa de audiência (lançamento do app + método): `pesquisa-audiencia/` — aguardando aprovação da Day antes de rodar anúncio
