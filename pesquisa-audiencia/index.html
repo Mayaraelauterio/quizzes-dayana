@@ -329,11 +329,12 @@
     },
     {
       tipo: 'escolha',
-      titulo: 'Você já me conhece de onde?',
+      titulo: 'Hoje, você estuda ou já pensou em estudar pra algum concurso público?',
       opcoes: [
-        'Já sou sua aluna ou já comprei algo com você',
-        'Te acompanho nas redes, mas nunca comprei nada',
-        'Cheguei até você agora, por indicação ou anúncio'
+        'Sim, estou estudando ativamente',
+        'Sim, mas ainda não comecei de verdade',
+        'Já estudei antes e parei',
+        'Não estudo pra concurso, só te acompanho por outro motivo'
       ]
     },
     {
@@ -350,17 +351,6 @@
         'Analista de tribunal / área jurídica',
         'Ainda não decidi / mais de um',
         { texto: 'Outro', abrirCampo: true, placeholder: 'Qual concurso?' }
-      ]
-    },
-    {
-      tipo: 'escolha',
-      titulo: 'Em que fase da caminhada você está?',
-      opcoes: [
-        'Começando agora, nunca estudei pra concurso',
-        'Estudo há menos de 1 ano, nunca fiz uma prova',
-        'Estudo há mais de 1 ano, já fiz provas e não passei',
-        'Já passei em alguma fase, mas travei no meio do caminho',
-        'Voltando a estudar depois de ter parado'
       ]
     },
     {
@@ -388,6 +378,17 @@
     },
     {
       tipo: 'escolha',
+      titulo: 'Depois que você estuda uma matéria, o que normalmente acontece?',
+      opcoes: [
+        'Reviso logo depois, mas esqueço depois de um tempo',
+        'Não tenho um jeito fixo de revisar, só estudo e sigo em frente',
+        'Só reviso quando fico com medo de ter esquecido',
+        'Tenho um cronograma de revisão e sigo ele',
+        'Nunca parei pra pensar nisso de um jeito estruturado'
+      ]
+    },
+    {
+      tipo: 'escolha',
       titulo: 'O que mais te trava hoje?',
       apoio: 'Escolha só a principal.',
       opcoes: [
@@ -402,24 +403,34 @@
     },
     {
       tipo: 'escolha',
-      titulo: 'O que você mais quer conquistar com os estudos?',
-      opcoes: [
-        'Passar no concurso dos meus sonhos',
-        'Ter uma rotina que eu realmente consiga seguir',
-        'Ter clareza do que estudar e em que ordem',
-        'Ter apoio emocional pra aguentar a caminhada',
-        'Ter alguém me acompanhando de perto, como uma mentora',
-        'Ainda estou descobrindo'
-      ]
-    },
-    {
-      tipo: 'escolha',
       titulo: 'O uso de inteligência artificial (IA) facilitaria a hora de estudar?',
       opcoes: [
         'Sim, com certeza ajudaria',
         'Ajudaria em parte, mas tenho receio',
         'Não sei dizer',
         'Não, prefiro o jeito tradicional de estudar'
+      ]
+    },
+    {
+      tipo: 'escolha',
+      titulo: 'Se você pudesse estudar e revisar o conteúdo de qualquer lugar, direto do celular, isso faria diferença na sua rotina?',
+      opcoes: [
+        'Sim, seria essencial, porque hoje eu perco tempo que podia estar estudando',
+        'Ajudaria bastante, principalmente nos dias mais corridos',
+        'Seria bom, mas não é o que mais me falta hoje',
+        'Pra mim tanto faz onde eu estudo, meu problema é outro',
+        'Prefiro estudar sentada, com tempo e foco, não pelo celular'
+      ]
+    },
+    {
+      tipo: 'escolha',
+      titulo: 'Se você pudesse subir o edital do seu concurso e receber automaticamente um cronograma de estudo já com as revisões certas no lugar certo, isso resolveria um problema seu?',
+      opcoes: [
+        'Sim, essa é uma das minhas maiores dificuldades hoje',
+        'Ajudaria bastante, mas eu ainda ia querer conferir e ajustar',
+        'Ajudaria um pouco, mas não é meu maior problema',
+        'Já resolvo isso de outro jeito (cronograma próprio, cursinho, mentoria)',
+        'Não sinto falta disso, sei bem o que estudar e quando revisar'
       ]
     },
     {
@@ -437,9 +448,12 @@
         'Jurisprudência atualizada',
         'Resumos e mapas mentais',
         'Simulados cronometrados',
-        'Apoio emocional / devocional',
         'Súmulas e jurisprudência oficiais (STF, STJ, TST, TSE)',
         'Banco grande de questões de provas reais, por banca',
+        'Flashcards pra memorizar',
+        'Lei seca em áudio, pra ouvir quando não dá pra ler',
+        'Apoio emocional nos momentos difíceis',
+        'Devocional / conexão com Deus durante a preparação',
         { texto: 'Outro', abrirCampo: true, placeholder: 'O que mais?' }
       ]
     },
