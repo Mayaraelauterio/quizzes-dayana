@@ -312,22 +312,6 @@
   var perguntas = [
     null,
     {
-      tipo: 'form',
-      titulo: 'Primeiro, me conta quem é você.',
-      campos: [
-        {id:'nome', label:'Nome completo', type:'text', placeholder:'Como você se chama?', obrigatorio: true,
-          validar: function(v){ return /^[A-Za-zÀ-ÖØ-öø-ÿ'’-]+(\s+[A-Za-zÀ-ÖØ-öø-ÿ'’-]+)+$/.test(v.trim()); },
-          erro: 'Escreve seu nome completo (nome e sobrenome).'},
-        {id:'whatsapp', label:'WhatsApp com DDD', type:'tel', placeholder:'(00) 00000-0000', obrigatorio: true, mascara: 'telefone',
-          validar: function(v){ var d = v.replace(/\D/g,''); return d.length === 10 || d.length === 11; },
-          erro: 'Confere o DDD e o número, com os 11 dígitos.'},
-        {id:'email', label:'E-mail', type:'email', placeholder:'seuemail@exemplo.com', obrigatorio: true,
-          validar: function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); },
-          erro: 'Esse e-mail não parece completo.'}
-      ],
-      apoio: 'É só pra eu poder te chamar pelo nome e, se fizer sentido, te avisar em primeira mão quando isso sair do papel.'
-    },
-    {
       tipo: 'escolha',
       titulo: 'Hoje, você estuda ou já pensou em estudar pra algum concurso público?',
       opcoes: [
@@ -442,7 +426,7 @@
         'Lei seca organizada',
         'Questões comentadas',
         'Método de estudo (técnica de aprendizagem e memorização)',
-        'Mentora de IA tirando dúvidas',
+        'IA tirando dúvidas',
         'Caderno de erros',
         'Dicionário jurídico',
         'Jurisprudência atualizada',
@@ -456,6 +440,22 @@
         'Devocional / conexão com Deus durante a preparação',
         { texto: 'Outro', abrirCampo: true, placeholder: 'O que mais?' }
       ]
+    },
+    {
+      tipo: 'form',
+      titulo: 'Agora só falta eu saber quem é você.',
+      campos: [
+        {id:'nome', label:'Nome', type:'text', placeholder:'Como você se chama?', obrigatorio: true,
+          validar: function(v){ return /^[A-Za-zÀ-ÖØ-öø-ÿ'’-]{2,}(\s+[A-Za-zÀ-ÖØ-öø-ÿ'’-]+)*$/.test(v.trim()); },
+          erro: 'Escreve seu nome.'},
+        {id:'whatsapp', label:'WhatsApp com DDD', type:'tel', placeholder:'(00) 00000-0000', obrigatorio: true, mascara: 'telefone',
+          validar: function(v){ var d = v.replace(/\D/g,''); return d.length === 10 || d.length === 11; },
+          erro: 'Confere o DDD e o número, com os 11 dígitos.'},
+        {id:'email', label:'E-mail', type:'email', placeholder:'seuemail@exemplo.com', obrigatorio: true,
+          validar: function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); },
+          erro: 'Esse e-mail não parece completo.'}
+      ],
+      apoio: 'É só pra eu poder te chamar pelo nome e, se fizer sentido, te avisar em primeira mão quando isso sair do papel.'
     },
     {
       tipo: 'aberta',
@@ -479,7 +479,7 @@
 
   function atualizarTopo(){
     if(estado.passo >= 1 && estado.passo <= TOTAL){
-      elContagem.textContent = estado.passo + ' DE ' + TOTAL;
+      elContagem.textContent = '';
       elBarraWrap.hidden = false;
       elBarra.style.width = (estado.passo / TOTAL * 100) + '%';
     } else {
