@@ -22,7 +22,7 @@ window.CONFIG = {
   WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbzNsQcw9ZyJnGBzLefzXcm1eF5eyogjJaSp6nsFFGCP96UrFcRzW3E5PNjrdlq4GYc/exec',
 
   /* Webhook extra (n8n): recebe nome, telefone, e-mail, UTM e hora de entrada de todo lead. */
-  WEBHOOK_N8N_URL: 'https://apps-n8n.cwbnhf.easypanel.host/webhook-test/dayana-quiz1',
+  WEBHOOK_N8N_URL: 'https://apps-n8n.cwbnhf.easypanel.host/webhook/dayana-quiz1',
 
   /* Meta Pixel (só o número). */
   META_PIXEL_ID: '',

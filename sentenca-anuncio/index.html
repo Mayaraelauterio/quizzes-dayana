@@ -849,7 +849,7 @@ function enviarLead() {
   try { fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
 }
 /* Webhook extra (n8n): recebe nome, telefone, e-mail, UTM e hora de entrada de todo lead. Independente do webhook da planilha. */
-const WEBHOOK_N8N_URL = 'https://apps-n8n.cwbnhf.easypanel.host/webhook-test/dayana-quiz2';
+const WEBHOOK_N8N_URL = 'https://apps-n8n.cwbnhf.easypanel.host/webhook/dayana-quiz2';
 function enviarLeadN8n() {
   if (!WEBHOOK_N8N_URL) return;
   const body = JSON.stringify({ nome: A.nome || "", telefone: A.whats || "", email: A.email || "", utm: UTMS, data_hora_entrada: ENTRADA });
