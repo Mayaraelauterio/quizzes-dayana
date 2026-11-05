@@ -468,6 +468,48 @@
   var LETRAS = 'ABCDEFGHIJ';
   var estado = { passo: 0, respostas: {} };
 
+  var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbz1iiIzYQC7Kpu7civpPlnAB8sw6acf4RPPzCvZlZMPLYWhEhAkBmFvnpjLI8RWVeH1/exec';
+  var respostaEnviada = false;
+
+  function montarPayload(){
+    var r = estado.respostas;
+    var p10 = r.p10 || { selecionadas: [], outro: '' };
+    return {
+      nome: r.nome || '',
+      whatsapp: r.whatsapp || '',
+      email: r.email || '',
+      p1: r.p1 || '',
+      p2: r.p2 || '',
+      p3: r.p3 || '',
+      p4: r.p4 || '',
+      p5: r.p5 || '',
+      p6: r.p6 || '',
+      p7: r.p7 || '',
+      p8: r.p8 || '',
+      p9: r.p9 || '',
+      p10_marcadas: (p10.selecionadas || []).join(', '),
+      p10_outro: p10.outro || '',
+      pergunta: r.pergunta || '',
+      pagina: window.location.href
+    };
+  }
+
+  function enviarRespostas(){
+    if(respostaEnviada || !WEBHOOK_URL) return;
+    respostaEnviada = true;
+    var corpo = JSON.stringify(montarPayload());
+    fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: corpo, keepalive: true }).catch(function(){});
+  }
+
+  window.addEventListener('pagehide', function(){
+    if(!respostaEnviada && estado.respostas.nome && navigator.sendBeacon){
+      try{
+        navigator.sendBeacon(WEBHOOK_URL, new Blob([JSON.stringify(montarPayload())], { type: 'text/plain;charset=utf-8' }));
+        respostaEnviada = true;
+      }catch(e){}
+    }
+  });
+
   var elConteudo = document.getElementById('conteudo');
   var elContagem = document.getElementById('contagem');
   var elBarraWrap = document.getElementById('barraWrap');
@@ -759,6 +801,7 @@
 
     btn.addEventListener('click', function(){
       estado.respostas.pergunta = document.getElementById('pergunta').value.trim();
+      enviarRespostas();
       ir(TOTAL + 1);
     });
   }
