@@ -25,7 +25,7 @@ window.CONFIG = {
   WEBHOOK_N8N_URL: 'https://apps-n8n.cwbnhf.easypanel.host/webhook/dayana-quiz1',
 
   /* Meta Pixel (só o número). */
-  META_PIXEL_ID: '',
+  META_PIXEL_ID: '1804617524175213',
 
   /* Oferta (preço usado só se PRECOS estiver vazio) */
   PRECO: 'R$ 47,00',

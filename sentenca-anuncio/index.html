@@ -831,6 +831,21 @@ const PRECOS = [
 /* Link do checkout de verdade, usado só se PRECOS estiver vazio. */
 const CHECKOUT_URL = '';
 
+/* Meta Pixel ("Pixel Dayana BM21", BM 21). O Easy (px.js, no topo) também manda Lead, checkout e compra pela API de
+   Conversões; a Meta junta os dois pela marca do navegador (fbp). Vazio = sem pixel no navegador. */
+const META_PIXEL_ID = '1804617524175213';
+(function () {
+  if (!META_PIXEL_ID) return;
+  try {
+    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+      if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0;
+      t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    window.fbq('init', META_PIXEL_ID);
+    window.fbq('track', 'PageView');
+  } catch (e) {}
+})();
+function fbqSeguro() { try { if (META_PIXEL_ID && typeof window.fbq === 'function') window.fbq.apply(null, arguments); } catch (e) {} }
+
 /* Webhook que recebe o lead (planilha no Google Sheets). Vazio = ninguém recebe o lead. */
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzNsQcw9ZyJnGBzLefzXcm1eF5eyogjJaSp6nsFFGCP96UrFcRzW3E5PNjrdlq4GYc/exec';
 function enviarLead() {
@@ -1420,6 +1435,7 @@ const S = [
       Object.assign(A, { nome: nome.split(" ")[0], email, whats: document.getElementById("f-whats").value });
       enviarLead();
       enviarLeadN8n();
+      fbqSeguro('track', 'Lead', { content_name: 'Quiz Qual e a sua Sentenca' });
       return true;
     } },
 
@@ -1635,6 +1651,7 @@ const S = [
     onCta: () => {
       const tier = escolherPreco();
       const url = (tier && tier.checkout) || CHECKOUT_URL;
+      fbqSeguro('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
       if (url) { window.location.href = linkCheckout(url); return false; }
       toast("Checkout ainda não configurado (CHECKOUT_URL no topo do arquivo).");
       return false;
