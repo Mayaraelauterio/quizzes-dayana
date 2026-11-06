@@ -105,6 +105,36 @@
     if (REV || QA || params.get('tela')) return;
     try { if (window.fyads && typeof window.fyads.track === 'function') window.fyads.track(nome, props); } catch (e) {}
   }
+  /* Retenção por tela (aba Leads do Hub Mayara, 06/11/2026): avisa o site (/api/telas) de cada tela que a pessoa viu,
+     uma vez por pessoa (S.vistas), em lotes. Vai só o código, a posição e o título fixo da tela (data.js): nada de nome,
+     e-mail, WhatsApp ou respostas. Só em dayanamartins.com e no computador; nunca na revisão, no QA nem com ?tela=. */
+  var TELAS_ATIVO = !REV && !QA && !params.get('tela') && /(^|\.)dayanamartins\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  var TIPO_TELA = { ins: 'Texto', antesdepois: 'Antes e depois', prova: 'Prova', diag: 'Diagnóstico', captura: 'Cadastro', resultado: 'Resultado' };
+  var filaTelas = [], relogioTelas = null;
+  function nomeTela(t) {
+    var txt = typeof t.q === 'string' ? t.q : typeof t.tit === 'string' ? t.tit : (TIPO_TELA[t.t] || '');
+    txt = txt.replace(/<[^>]*>/g, '').replace(/\{([^}|]*)\|[^}]*\}/g, '$1').replace(/\{[^}]*\}/g, '…').replace(/\s+/g, ' ').trim();
+    if (txt.length > 70) txt = txt.slice(0, 69) + '…';
+    return t.id + (txt ? ' · ' + txt : '');
+  }
+  function enviarTelas() {
+    clearTimeout(relogioTelas); relogioTelas = null;
+    while (filaTelas.length) {
+      var corpo = JSON.stringify({ q: 'quiz-1-7-codigos', t: filaTelas.splice(0, 20) });
+      try {
+        if (!(navigator.sendBeacon && navigator.sendBeacon('/api/telas', new Blob([corpo], { type: 'application/json' }))))
+          fetch('/api/telas', { method: 'POST', body: corpo, keepalive: true, headers: { 'Content-Type': 'application/json' } }).catch(function () {});
+      } catch (e) {}
+    }
+  }
+  function contarTela(t) {
+    if (!TELAS_ATIVO) return;
+    filaTelas.push({ id: t.id, o: idxDe(t.id) + 1, n: nomeTela(t), c: t.show ? 1 : 0 });
+    if (filaTelas.length >= 5 || t.t === 'captura' || t.t === 'resultado') enviarTelas();
+    else if (!relogioTelas) relogioTelas = setTimeout(enviarTelas, 15000);
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') enviarTelas(); });
+  addEventListener('pagehide', enviarTelas);
   if (C.META_PIXEL_ID && !REV) {
     /* Meta Pixel */
     !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
@@ -404,6 +434,7 @@
     if (!S.vistas[t.id]) {
       S.vistas[t.id] = 1; salvar();
       track('s' + (n < 10 ? '0' : '') + n + '_' + t.id.toLowerCase(), { tela: t.id, tipo: t.t });
+      contarTela(t);
     }
     if (QA) painelQA();
     avisarHub();

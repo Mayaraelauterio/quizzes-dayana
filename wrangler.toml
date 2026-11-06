@@ -1,0 +1,12 @@
+# Site dos quizzes da Dayana Martins (Cloudflare Pages "quizzes-dayana", dayanamartins.com).
+# Publicar SEMPRE de dentro desta pasta: npx wrangler pages deploy . --project-name=quizzes-dayana --branch=main
+name = "quizzes-dayana"
+pages_build_output_dir = "."
+compatibility_date = "2026-09-01"
+
+# Retenção por tela (aba Leads do hub da Mayara): functions/api/telas.js soma as telas vistas neste banco.
+# Banco separado do hub, criado em 06/11/2026. O database_id não é segredo. A tabela é criada pelo hub (meu-hub/migrations-telas/).
+[[d1_databases]]
+binding = "TELAS"
+database_name = "quizzes-telas"
+database_id = "b7eaefb1-da58-4c32-92a4-174c69f54685"

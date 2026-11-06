@@ -685,6 +685,50 @@ const UTMS = (() => {
   } catch (e) {}
   return u;
 })();
+/* Retenção por tela (aba Leads do Hub Mayara, 06/11/2026): avisa o site (/api/telas) de cada tela que a pessoa viu,
+   uma vez por pessoa (sessionStorage), em lotes. Vai só o código, a posição e o título da tela, com o nome digitado
+   trocado por "[nome]": nada de nome, e-mail, WhatsApp ou respostas. Só em dayanamartins.com e no computador;
+   nunca nos atalhos de revisão do time (#fase2, #sentenca, #t12...). */
+const RETENCAO = (() => {
+  const ativo = !/^#(fase\d|sentenca|obrigado|checkout|t\d+)$/.test(location.hash)
+    && /(^|\.)dayanamartins\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  let vistas = {};
+  try { vistas = JSON.parse(sessionStorage.getItem("sentenca_telas") || "{}") || {}; } catch (e) {}
+  const fila = [];
+  let relogio = null;
+  const enviar = () => {
+    clearTimeout(relogio); relogio = null;
+    while (fila.length) {
+      const corpo = JSON.stringify({ q: "sentenca-anuncio", t: fila.splice(0, 20) });
+      try {
+        if (!(navigator.sendBeacon && navigator.sendBeacon("/api/telas", new Blob([corpo], { type: "application/json" }))))
+          fetch("/api/telas", { method: "POST", body: corpo, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
+      } catch (e) {}
+    }
+  };
+  const titulo = (s) => {
+    const h = document.querySelector("#app h1, #app h2");
+    let t = (h ? h.textContent : "").replace(/\s+/g, " ").trim();
+    for (const v of [A.nome, A.email, A.whats]) {
+      const x = String(v || "").trim();
+      if (x.length > 1) t = t.replace(new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), "[nome]");
+    }
+    if (t.length > 70) t = t.slice(0, 69) + "…";
+    return (s.id ? s.id + " · " : "") + (t || "Tela " + s.n);
+  };
+  const contar = (s) => {
+    const id = s.id || "t" + s.n;
+    if (!ativo || vistas[id]) return;
+    vistas[id] = 1;
+    try { sessionStorage.setItem("sentenca_telas", JSON.stringify(vistas)); } catch (e) {}
+    fila.push({ id, o: s.n, n: titulo(s), c: s.skip ? 1 : 0 });
+    if (fila.length >= 5 || s.id || document.getElementById("lead")) enviar();
+    else if (!relogio) relogio = setTimeout(enviar, 15000);
+  };
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") enviar(); });
+  addEventListener("pagehide", enviar);
+  return { contar };
+})();
 const sexo = () => A.genero === "mulher" ? "m" : "h";
 const g = (m, f) => A.genero === "mulher" ? f : m;
 const temFe = () => A.fe === "sim" || A.fe === "fe";
@@ -1739,6 +1783,7 @@ function show(i, push = true) {
   window.scrollTo(0, 0); app.scrollTop = 0;
   fit();
   if (s.onShow) s.onShow();
+  RETENCAO.contar(s);
   app.querySelectorAll("img").forEach(img => img.complete || img.addEventListener("load", fit, { once: true }));
 }
 function next() { let i = cur + 1; while (i < S.length - 1 && S[i].skip && S[i].skip()) i++; if (i < S.length) show(i); }
