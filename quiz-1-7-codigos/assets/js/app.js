@@ -99,6 +99,12 @@
     if (QA) console.log('[track]', ev, dados || '');
   }
   function fbq() { if (!REV && typeof window.fbq === 'function') window.fbq.apply(null, arguments); }
+  /* Marca para o Funil do Easy: preco_87 = viu a página de preço de R$ 87; checkout_87 = clicou em comprar nela.
+     Sem o rastreador (bloqueador), na revisão, no QA e nas telas abertas direto (?tela=), não faz nada. */
+  function marcaEasy(nome, props) {
+    if (REV || QA || params.get('tela')) return;
+    try { if (window.fyads && typeof window.fyads.track === 'function') window.fyads.track(nome, props); } catch (e) {}
+  }
   if (C.META_PIXEL_ID && !REV) {
     /* Meta Pixel */
     !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
@@ -1034,6 +1040,7 @@
 
   function ligarResultado() {
     track('resultado_visto', { codigo: R.travado });
+    marcaEasy('preco_' + ((escolherPreco() || {}).valor || 47), { quiz: 'quiz1' });
     if (S.leadPendente) enviarLead();
     requestAnimationFrame(function () {
       $app.querySelectorAll('.trilho i').forEach(function (i) { i.style.width = i.dataset.w + '%'; });
@@ -1064,6 +1071,7 @@
     if (REV) { aviso('Modo revisão: o botão de compra não abre o checkout.'); return; }
     var tier = escolherPreco();
     track('checkout_click', { origem: origem, codigo: R && R.travado, preco: (tier && tier.preco) || C.PRECO });
+    marcaEasy('checkout_' + ((tier && tier.valor) || 47), { quiz: 'quiz1', botao: origem });
     fbq('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
     var u = urlCheckout(origem);
     if (u) { window.location.href = u; return; }

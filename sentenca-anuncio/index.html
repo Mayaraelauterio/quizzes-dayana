@@ -845,6 +845,9 @@ const META_PIXEL_ID = '1804617524175213';
   } catch (e) {}
 })();
 function fbqSeguro() { try { if (META_PIXEL_ID && typeof window.fbq === 'function') window.fbq.apply(null, arguments); } catch (e) {} }
+/* Marca para o Funil do Easy: preco_87 = viu a página de preço de R$ 87; checkout_87 = clicou em comprar nela.
+   Sem o rastreador (bloqueador) e nos atalhos de revisão do time (#fase5 etc.), não faz nada. */
+function marcaEasy(nome, props) { try { if (!location.hash && window.fyads && typeof window.fyads.track === 'function') window.fyads.track(nome, props); } catch (e) {} }
 
 /* Webhook que recebe o lead (planilha no Google Sheets). Vazio = ninguém recebe o lead. */
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzNsQcw9ZyJnGBzLefzXcm1eF5eyogjJaSp6nsFFGCP96UrFcRzW3E5PNjrdlq4GYc/exec';
@@ -1651,11 +1654,13 @@ const S = [
     onCta: () => {
       const tier = escolherPreco();
       const url = (tier && tier.checkout) || CHECKOUT_URL;
+      marcaEasy('checkout_' + ((tier && tier.valor) || 47), { quiz: 'sentenca' });
       fbqSeguro('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
       if (url) { window.location.href = linkCheckout(url); return false; }
       toast("Checkout ainda não configurado (CHECKOUT_URL no topo do arquivo).");
       return false;
-    } },
+    },
+    onShow: () => { const tier = escolherPreco(); marcaEasy('preco_' + ((tier && tier.valor) || 47), { quiz: 'sentenca' }); } },
 
   /* ================= OBRIGADO + PRÓXIMO PASSO ================= */
   { id: "obrigado", scroll: true, cta: "QUERO ENTRAR NA LISTA VIP", render: () => {
