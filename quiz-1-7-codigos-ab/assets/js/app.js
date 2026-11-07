@@ -27,11 +27,20 @@
   var $ctaFixo = document.getElementById('cta-fixo');
 
   /* Teste A/B da capa: sorteia uma vez por sessão (?capa=id força uma específica, pra revisão). */
+  var CAPA_KEY = 'dm_7codigos_capa';
   function escolherVarianteCapa() {
     if (typeof VARIANTES_CAPA === 'undefined' || !VARIANTES_CAPA.length) return null;
     var forcar = params.get('capa');
     if (forcar && VARIANTES_CAPA.some(function (v) { return v.id === forcar; })) return forcar;
-    return VARIANTES_CAPA[Math.floor(Math.random() * VARIANTES_CAPA.length)].id;
+    /* Sorteio por visitante (não só por aba): guarda a capa no localStorage e reaproveita
+       enquanto ainda for uma das 4 variantes atuais. */
+    try {
+      var guardada = localStorage.getItem(CAPA_KEY);
+      if (guardada && VARIANTES_CAPA.some(function (v) { return v.id === guardada; })) return guardada;
+    } catch (e) {}
+    var escolhida = VARIANTES_CAPA[Math.floor(Math.random() * VARIANTES_CAPA.length)].id;
+    try { localStorage.setItem(CAPA_KEY, escolhida); } catch (e) {}
+    return escolhida;
   }
   function aplicarVarianteCapa(id) {
     if (typeof VARIANTES_CAPA === 'undefined') return;
@@ -123,6 +132,12 @@
       t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     window.fbq('init', C.META_PIXEL_ID);
     window.fbq('track', 'PageView');
+  }
+  /* Marca para o Funil do Easy: preco_87 = viu a página de preço de R$ 87; checkout_87 = clicou em comprar nela.
+     Sem o rastreador (bloqueador), na revisão, no QA e nas telas abertas direto (?tela=), não faz nada. */
+  function marcaEasy(nome, props) {
+    if (REV || QA || params.get('tela')) return;
+    try { if (window.fyads && typeof window.fyads.track === 'function') window.fyads.track(nome, props); } catch (e) {}
   }
 
   /* Retenção por tela (aba Leads do Hub Mayara, 07/11/2026): avisa o site (/api/telas) de cada tela que a pessoa viu,
@@ -445,6 +460,7 @@
       S.vistas[t.id] = 1; salvar();
       track('s' + (n < 10 ? '0' : '') + n + '_' + t.id.toLowerCase(), { tela: t.id, tipo: t.t });
       contarTela(t);
+      if (t === TELAS[0] && S.variante_capa) marcaEasy('capa_' + S.variante_capa, { quiz: 'quiz1ab' });
     }
     if (QA) painelQA();
     avisarHub();
@@ -916,6 +932,10 @@
       var u = new URL(base);
       Object.keys(S.utms || {}).forEach(function (k) { if (!u.searchParams.has(k)) u.searchParams.set(k, S.utms[k]); });
       u.searchParams.set('src', 'quiz-7-codigos');
+      /* Etiqueta do anúncio para o Easy: o rastreador da página (fyads) põe o fyid no "sck" e as UTMs da entrada,
+         para a venda ser atribuída ao anúncio. Por isso o "sck" fica livre para ele. Sem o rastreador
+         (bloqueador de anúncio), o "sck" leva o código e o botão, como antes. */
+      if (window.fyads && typeof window.fyads.link === 'function') return window.fyads.link(u.toString());
       if (R) u.searchParams.set('sck', 'codigo-' + R.travado + '-' + origem);
       return u.toString();
     } catch (e) { return base; }
@@ -1077,6 +1097,7 @@
 
   function ligarResultado() {
     track('resultado_visto', { codigo: R.travado });
+    marcaEasy('preco_' + ((escolherPreco() || {}).valor || 47), { quiz: 'quiz1ab', capa: S.variante_capa });
     if (S.leadPendente) enviarLead();
     requestAnimationFrame(function () {
       $app.querySelectorAll('.trilho i').forEach(function (i) { i.style.width = i.dataset.w + '%'; });
@@ -1107,6 +1128,7 @@
     if (REV) { aviso('Modo revisão: o botão de compra não abre o checkout.'); return; }
     var tier = escolherPreco();
     track('checkout_click', { origem: origem, codigo: R && R.travado, preco: (tier && tier.preco) || C.PRECO });
+    marcaEasy('checkout_' + ((tier && tier.valor) || 47), { quiz: 'quiz1ab', botao: origem, capa: S.variante_capa });
     fbq('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
     var u = urlCheckout(origem);
     if (u) { window.location.href = u; return; }

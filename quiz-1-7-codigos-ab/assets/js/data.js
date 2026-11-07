@@ -119,10 +119,11 @@ const is = (A, id, i) => sel(A, id).includes(i);
    t: gender | q (única) | m (múltipla) | e (escala) | ins | antesdepois | prova | diag | captura | resultado
    -------------------------------------------------------------------------- */
 /* ==========================================================================
-   TESTE A/B DA CAPA — cada pessoa nova vê uma destas 4 versões por sorteio
-   (ver escolherVarianteCapa() em app.js). "atual" é a capa de controle,
-   igual à do quiz original; as outras seguem o criativo que performou bem
-   (C2: "Antes de ser aprovada, eu fui reprovada").
+   TESTE A/B DA CAPA — cada visitante novo vê uma destas 4 versões por sorteio
+   (ver escolherVarianteCapa() em app.js; guardada no localStorage, vale por
+   visitante, não só por aba). Todas seguem o criativo que performou bem
+   (C2: "Antes de ser aprovada, eu fui reprovada"), com perguntas de C1, C3
+   e S10 já aprovadas nos roteiros de anúncio.
    Pedido da Mayara em 07/11/2026, pra testar título sem duplicar o quiz de novo.
    ========================================================================== */
 const VARIANTES_CAPA = [
