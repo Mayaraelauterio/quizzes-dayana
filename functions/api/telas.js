@@ -5,7 +5,7 @@
 // Banco: "quizzes-telas" (ligação TELAS no wrangler.toml), separado do banco do hub. Tabela: meu-hub/migrations-telas/.
 // Recusa (sem gravar nada): outro método, outro site, quiz fora da lista, corpo grande ou tela fora do formato.
 
-const QUIZZES = ['quiz-1-7-codigos', 'sentenca-anuncio', 'quiz-1-7-codigos-ab'];
+const QUIZZES = ['quiz-1-7-codigos', 'sentenca-anuncio', 'quiz-1-7-codigos-ab', 'quiz-1-7-codigos-ab-47'];
 const MAX_CORPO = 6000;   // bytes
 const MAX_TELAS = 20;     // telas por aviso
 const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' });
