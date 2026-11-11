@@ -11,5 +11,8 @@ window.CONFIG = {
   /* Link do checkout (Greenn) para o preço acima. Vazio = o botão avisa que ainda não foi configurado. */
   CHECKOUT_URL: 'https://payfast.greenn.com.br/200695/offer/tqH6qo',
 
-  PARCELAS_TEXTO: 'ou parcelado no cartão (valor calculado pela plataforma)'
+  PARCELAS_TEXTO: 'ou parcelado no cartão (valor calculado pela plataforma)',
+
+  /* Minutos do contador do cupom (recomeça a cada visita nova). Pedido da Mayara em 12/11/2026. */
+  CUPOM_MINUTOS: 10
 };

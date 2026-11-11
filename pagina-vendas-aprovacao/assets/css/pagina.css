@@ -21,6 +21,25 @@
   display: flex !important; flex-direction: column; align-items: center; gap: 6px;
 }
 
+/* Cupom de desconto + contador (pedido da Mayara, 12/11/2026, no mesmo estilo da referência) */
+.cupom-banner {
+  margin: 18px 0 10px; padding: 10px 16px; border-radius: 12px; text-align: center;
+  background: var(--preto); color: var(--ouro); font-weight: 800; font-size: 13px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.oferta-box .cupom-banner { background: linear-gradient(180deg, var(--ouro-2), var(--ouro)); color: var(--preto); }
+.contador-cupom { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0 0 14px; }
+.contador-cupom > div { display: flex; flex-direction: column; align-items: center; background: var(--creme); border: 1px solid var(--ouro-linha); border-radius: 10px; padding: 6px 16px; min-width: 52px; }
+.oferta-box .contador-cupom > div { background: rgba(255, 255, 255, .06); border-color: rgba(220, 194, 135, .35); }
+.contador-cupom b { font-family: var(--serif); font-size: 26px; line-height: 1; color: var(--ouro-texto); font-variant-numeric: lining-nums tabular-nums; }
+.oferta-box .contador-cupom b { color: var(--ouro); }
+.contador-cupom span { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.oferta-box .contador-cupom span { color: #cfc8b8; }
+.cd-dois-pontos { font-size: 20px; font-weight: 700; color: var(--ouro-texto); }
+.oferta-box .cd-dois-pontos { color: var(--ouro); }
+.tag-off { display: inline-block; margin: 0 0 6px; padding: 3px 14px; border-radius: 999px; background: var(--alerta); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.tag-off:empty { display: none; }
+
 /* Valor em destaque: o número vira o ponto mais forte do bloco de preço (capa e oferta) */
 .preco-valor {
   display: inline-block; text-align: center; padding: 4px 20px; border-radius: 12px;

@@ -48,6 +48,34 @@
     if (C.PARCELAS_TEXTO && $parcelas) { $parcelas.textContent = C.PARCELAS_TEXTO; $parcelas.hidden = false; }
   }
 
+  /* Selo "-XX% OFF": calculado de verdade (soma dos bônus vs. o preço), nunca um número inventado */
+  var BONUS_TOTAL = 627.9;
+  var precoNum = C.PRECO ? parseFloat(C.PRECO.replace(/[^\d,]/g, '').replace(',', '.')) : null;
+  if (precoNum) {
+    var off = Math.round((1 - precoNum / BONUS_TOTAL) * 100);
+    document.querySelectorAll('.tag-off').forEach(function (el) { el.textContent = '-' + off + '% off'; });
+  }
+
+  /* ------------------------------ CUPOM: contador regressivo ------------------------------ */
+  /* Mesmo prazo pra quem já viu a página nesta visita (sessionStorage); uma visita nova sorteia de novo. */
+  var CUPOM_MIN = (C.CUPOM_MINUTOS || 10);
+  var CUPOM_KEY = 'dm_7codigos_cupom_fim';
+  var fimCupom;
+  try {
+    fimCupom = +sessionStorage.getItem(CUPOM_KEY);
+    if (!fimCupom || fimCupom < Date.now()) { fimCupom = Date.now() + CUPOM_MIN * 60000; sessionStorage.setItem(CUPOM_KEY, fimCupom); }
+  } catch (e) { fimCupom = Date.now() + CUPOM_MIN * 60000; }
+  function atualizarCupom() {
+    var restam = Math.max(0, fimCupom - Date.now());
+    var min = Math.floor(restam / 60000), seg = Math.floor((restam % 60000) / 1000);
+    var minTxt = (min < 10 ? '0' : '') + min, segTxt = (seg < 10 ? '0' : '') + seg;
+    ['cd-min', 'cd-min-topo'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = minTxt; });
+    ['cd-seg', 'cd-seg-topo'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = segTxt; });
+    if (restam <= 0) clearInterval(relogioCupom);
+  }
+  atualizarCupom();
+  var relogioCupom = setInterval(atualizarCupom, 1000);
+
   /* ------------------------------ CHECKOUT ------------------------------ */
   function urlCheckout(origem) {
     if (!C.CHECKOUT_URL) return '';
