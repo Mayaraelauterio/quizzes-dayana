@@ -11,8 +11,13 @@ const QUIZZES = ['quiz-1-7-codigos', 'sentenca-anuncio', 'quiz-1-7-codigos-ab', 
 // Esse código tem ":" de propósito: o hub busca um quiz por "<quiz>|", então a contagem por capa não aparece misturada na aba Leads.
 // Só vale se a capa estiver nesta lista (ids de VARIANTES_CAPA em data.js). "v" fora da lista é ignorado: o quiz continua contando normal.
 const CAPAS = {
-  'quiz-1-7-codigos-ab': ['reprovada-trave', 'reprovada-3coisas', 'reprovada-falta', 'reprovada-3']
+  'quiz-1-7-codigos-ab': ['reprovada-trave', 'reprovada-3coisas', 'reprovada-falta', 'reprovada-3'],
+  'quiz-1-7-codigos-ab-47': ['reprovada-trave', 'reprovada-3coisas', 'reprovada-falta', 'reprovada-3']  // mesmas 4 capas (11/11/2026)
 };
+// Robôs (11/11/2026): a revisão de anúncios da Meta e outros robôs abrem o quiz sem ninguém ver e inflavam a primeira tela.
+// Pelo User-Agent, um robô conhecido não conta nas telas: só soma +1 em "<quiz>:robos" (tela ROBO), para conferir quantos foram.
+// Lista de nomes de robôs, e não só "bot", para não pegar celular com "bot" no nome (ex.: CUBOT).
+const ROBO = /googlebot|bingbot|adsbot|applebot|duckduckbot|yandex|baiduspider|petalbot|facebookexternalhit|facebookbot|facebookcatalog|meta-external|twitterbot|linkedinbot|slackbot|discordbot|telegrambot|whatsapp\/|semrush|ahrefs|headlesschrome|lighthouse|gtmetrix|pingdom|uptimerobot|python-requests|curl\/|wget\/|go-http-client|node-fetch|axios\/|crawler|spider/i;
 const MAX_CORPO = 6000;   // bytes
 const MAX_TELAS = 20;     // telas por aviso
 const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -39,13 +44,17 @@ export async function onRequestPost({ request, env }) {
     }
 
     const agora = new Date().toISOString();
-    const somar = quiz => env.TELAS.prepare(`INSERT INTO telas_contagem (id, quiz, dia, tela, ordem, nome, condicional, pessoas, criado_em, atualizado_em, arquivado)
+    const somar = (quiz, lista = [...telas.values()]) => env.TELAS.prepare(`INSERT INTO telas_contagem (id, quiz, dia, tela, ordem, nome, condicional, pessoas, criado_em, atualizado_em, arquivado)
       SELECT ?1 || '|' || d.value || '|' || json_extract(t.value, '$.id'), ?1, d.value, json_extract(t.value, '$.id'),
         json_extract(t.value, '$.o'), json_extract(t.value, '$.n'), json_extract(t.value, '$.c'), 1, ?3, ?3, 0
       FROM json_each(?2) t, json_each(?4) d WHERE true
       ON CONFLICT(id) DO UPDATE SET pessoas = pessoas + 1, ordem = excluded.ordem, nome = excluded.nome,
         condicional = excluded.condicional, atualizado_em = excluded.atualizado_em`)
-      .bind(quiz, JSON.stringify([...telas.values()]), agora, JSON.stringify([dia.format(new Date()), 'total']));
+      .bind(quiz, JSON.stringify(lista), agora, JSON.stringify([dia.format(new Date()), 'total']));
+    if (ROBO.test(request.headers.get('User-Agent') || '')) {
+      await somar(d.q + ':robos', [{ id: 'ROBO', o: 1, n: 'ROBO · Robô recusado', c: 0 }]).run();
+      return new Response(null, { status: 204 });
+    }
     const capa = typeof d.v === 'string' && (CAPAS[d.q] || []).includes(d.v) ? d.v : null;
     // As duas contagens (do quiz e da capa) entram juntas ou nenhuma entra.
     await env.TELAS.batch(capa ? [somar(d.q), somar(d.q + ':' + capa)] : [somar(d.q)]);

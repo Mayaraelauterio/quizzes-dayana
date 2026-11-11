@@ -143,7 +143,10 @@
   /* Retenção por tela (aba Leads do Hub Mayara, 07/11/2026): avisa o site (/api/telas) de cada tela que a pessoa viu,
      uma vez por pessoa (S.vistas), em lotes. Vai só o código, a posição e o título fixo da tela (data.js): nada de nome,
      e-mail, WhatsApp ou respostas. Só em dayanamartins.com e no computador; nunca na revisão, no QA nem com ?tela=. */
-  var TELAS_ATIVO = !REV && !QA && !params.get('tela') && /(^|\.)dayanamartins\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  var TELAS_ATIVO = !REV && !QA && !params.get('tela') && !navigator.webdriver && /(^|\.)dayanamartins\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  /* Robôs (11/11/2026): a revisão de anúncios da Meta abre a página sem ninguém ver. Só conta depois que a página ficou
+     visível pelo menos uma vez; navegador automático (navigator.webdriver) nunca conta. */
+  var telaVista = document.visibilityState === 'visible';
   var TIPO_TELA = { ins: 'Texto', antesdepois: 'Antes e depois', prova: 'Prova', diag: 'Diagnóstico', captura: 'Cadastro', resultado: 'Resultado' };
   var filaTelas = [], relogioTelas = null;
   function nomeTela(t) {
@@ -154,8 +157,9 @@
   }
   function enviarTelas() {
     clearTimeout(relogioTelas); relogioTelas = null;
+    if (!telaVista) return;
     while (filaTelas.length) {
-      var corpo = JSON.stringify({ q: 'quiz-1-7-codigos-ab-47', t: filaTelas.splice(0, 20) });
+      var corpo = JSON.stringify({ q: 'quiz-1-7-codigos-ab-47', v: S.variante_capa || undefined, t: filaTelas.splice(0, 20) });
       try {
         if (!(navigator.sendBeacon && navigator.sendBeacon('/api/telas', new Blob([corpo], { type: 'application/json' }))))
           fetch('/api/telas', { method: 'POST', body: corpo, keepalive: true, headers: { 'Content-Type': 'application/json' } }).catch(function () {});
@@ -167,6 +171,19 @@
     filaTelas.push({ id: t.id, o: idxDe(t.id) + 1, n: nomeTela(t), c: t.show ? 1 : 0 });
     if (filaTelas.length >= 5 || t.t === 'captura' || t.t === 'resultado') enviarTelas();
     else if (!relogioTelas) relogioTelas = setTimeout(enviarTelas, 15000);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') { telaVista = true; if (filaTelas.length && !relogioTelas) relogioTelas = setTimeout(enviarTelas, 15000); }
+    else enviarTelas();
+  });
+  addEventListener('pagehide', enviarTelas);
+  /* Clique no botão de compra (teste A/B das capas, 11/11/2026): conta a "tela" CHECKOUT uma vez por pessoa e manda na hora. */
+  function contarCheckout() {
+    if (S.vistas.CHECKOUT) return;
+    S.vistas.CHECKOUT = 1; salvar();
+    if (!TELAS_ATIVO) return;
+    filaTelas.push({ id: 'CHECKOUT', o: TELAS.length + 1, n: 'CHECKOUT · Clique no botão de compra', c: 0 });
+    enviarTelas();
   }
 
   /* ------------------------------ PONTUAÇÃO ------------------------------ */
@@ -931,7 +948,7 @@
     try {
       var u = new URL(base);
       Object.keys(S.utms || {}).forEach(function (k) { if (!u.searchParams.has(k)) u.searchParams.set(k, S.utms[k]); });
-      u.searchParams.set('src', 'quiz-7-codigos');
+      u.searchParams.set('src', 'quiz-7-codigos' + (S.variante_capa ? '-ab47-' + S.variante_capa : '')); /* capa no src: venda por capa (11/11/2026) */
       /* Etiqueta do anúncio para o Easy: o rastreador da página (fyads) põe o fyid no "sck" e as UTMs da entrada,
          para a venda ser atribuída ao anúncio. Por isso o "sck" fica livre para ele. Sem o rastreador
          (bloqueador de anúncio), o "sck" leva o código e o botão, como antes. */
@@ -1129,6 +1146,7 @@
     var tier = escolherPreco();
     track('checkout_click', { origem: origem, codigo: R && R.travado, preco: (tier && tier.preco) || C.PRECO });
     marcaEasy('checkout_' + ((tier && tier.valor) || 47), { quiz: 'quiz1ab47', botao: origem, capa: S.variante_capa });
+    contarCheckout();
     fbq('track', 'InitiateCheckout', { value: (tier && tier.valor) || 47, currency: 'BRL', content_name: 'Os 7 Codigos da Aprovacao' });
     var u = urlCheckout(origem);
     if (u) { window.location.href = u; return; }
