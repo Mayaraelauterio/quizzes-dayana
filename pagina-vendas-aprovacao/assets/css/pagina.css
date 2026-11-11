@@ -1,0 +1,61 @@
+/* ==========================================================================
+   Página de vendas avulsa "Os 7 Códigos da Aprovação" — ajustes por cima do
+   style.css do quiz (mesma identidade: branco, preto e dourado).
+   ========================================================================== */
+
+.capa { text-align: center; padding-bottom: 8px; }
+.capa .autora { justify-content: center; }
+.capa .selo { margin-top: 4px; }
+.capa .btn { margin-top: 4px; }
+
+/* Bloco de preço na capa (fundo claro, mesma leitura "de/por" da oferta no fim da página) */
+.capa-preco { margin: 18px 0 20px; padding: 16px 20px; border-radius: 16px; background: var(--creme); border: 1px solid var(--ouro-linha); }
+.capa-preco .de { margin: 0 0 2px !important; color: var(--muted) !important; font-size: 14px; }
+.capa-preco .de s { color: var(--alerta); }
+.capa-preco .preco { margin: 0 !important; font-family: var(--serif); font-weight: 700; font-size: 42px; line-height: 1.1; color: var(--ouro-texto) !important; }
+.capa-preco .preco small { font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--text-2); }
+
+/* Preço sempre centralizado: "por" numa linha, o valor embaixo, cada um centrado por si
+   (em vez de lado a lado, onde o selo grande "puxava" a leitura para um lado). */
+.capa-preco .preco, .oferta-box .preco {
+  display: flex !important; flex-direction: column; align-items: center; gap: 6px;
+}
+
+/* Valor em destaque: o número vira o ponto mais forte do bloco de preço (capa e oferta) */
+.preco-valor {
+  display: inline-block; text-align: center; padding: 4px 20px; border-radius: 12px;
+  background: linear-gradient(180deg, var(--ouro-2), var(--ouro)) !important;
+  color: var(--preto) !important; -webkit-text-fill-color: var(--preto);
+  font-size: 1.12em; box-shadow: 0 8px 18px -10px rgba(160, 125, 50, .65);
+  /* A fonte (Cormorant Garamond) desenha alguns números "descendo" da linha (estilo antigo);
+     tabular-nums usa a versão dos números todos na mesma altura, como no "29"/"17" do mecanismo. */
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* FAQ (accordion nativo, <details>/<summary>) */
+.faq-lista { display: grid; gap: 10px; }
+.faq-item {
+  border: 1px solid var(--line); border-radius: var(--r); background: #fff; padding: 2px 16px;
+}
+.faq-item summary {
+  cursor: pointer; padding: 14px 24px 14px 0; font-weight: 600; font-size: 15px; color: var(--text);
+  list-style: none; position: relative;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+'; position: absolute; right: 0; top: 12px; font-size: 22px; line-height: 1;
+  color: var(--ouro-texto); font-weight: 700;
+}
+.faq-item[open] summary::after { content: '–'; }
+.faq-item p { margin: 0 0 14px !important; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+
+/* Fechamento: assentos são montados em JS, reaproveitando a classe .assento do quiz */
+.fechamento .btn { margin-top: 4px; }
+
+/* Botão "Quero destravar a minha aprovação" em verde (pedido da Mayara, 11/11/2026) */
+.btn-cta {
+  background: linear-gradient(180deg, #2f8f68, #1f6f50) !important;
+  color: #fff !important; box-shadow: 0 12px 26px -14px rgba(31, 111, 80, .75) !important;
+}
+.btn-cta:hover { background: linear-gradient(180deg, #388f6c, #255f44) !important; }
