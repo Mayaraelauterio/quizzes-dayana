@@ -155,7 +155,7 @@
   function enviarTelas() {
     clearTimeout(relogioTelas); relogioTelas = null;
     while (filaTelas.length) {
-      var corpo = JSON.stringify({ q: 'quiz-1-7-codigos-ab', t: filaTelas.splice(0, 20) });
+      var corpo = JSON.stringify({ q: 'quiz-1-7-codigos-ab', v: S.variante_capa || undefined, t: filaTelas.splice(0, 20) });
       try {
         if (!(navigator.sendBeacon && navigator.sendBeacon('/api/telas', new Blob([corpo], { type: 'application/json' }))))
           fetch('/api/telas', { method: 'POST', body: corpo, keepalive: true, headers: { 'Content-Type': 'application/json' } }).catch(function () {});

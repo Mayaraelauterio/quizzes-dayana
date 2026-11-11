@@ -1,4 +1,4 @@
-// POST /api/telas   { q: 'quiz-1-7-codigos', t: [{ id: 'P7', o: 12, n: 'P7 · Qual a sua idade?', c: 0 }, ...] }
+// POST /api/telas   { q: 'quiz-1-7-codigos', v: 'reprovada-trave' (opcional: capa do teste A/B), t: [{ id: 'P7', o: 12, n: 'P7 · Qual a sua idade?', c: 0 }, ...] }
 // Retenção por tela (aba Leads do hub da Mayara, pedido de 06/11/2026): cada quiz avisa as telas que a pessoa viu,
 // uma vez por pessoa e tela, em lotes. Aqui só se soma +1 em cada tela, no dia (São Paulo) e no total.
 // SEM DADO PESSOAL: só o código, a posição e o título fixo da tela. Nada de nome, e-mail, WhatsApp, respostas ou IP.
@@ -6,6 +6,13 @@
 // Recusa (sem gravar nada): outro método, outro site, quiz fora da lista, corpo grande ou tela fora do formato.
 
 const QUIZZES = ['quiz-1-7-codigos', 'sentenca-anuncio', 'quiz-1-7-codigos-ab', 'quiz-1-7-codigos-ab-47'];
+// Teste A/B das capas (pedido da Mayara, 11/11/2026): o aviso pode trazer "v" = a capa que a pessoa viu. Além da contagem
+// normal do quiz, soma +1 também na contagem daquela capa, guardada como quiz "<quiz>:<capa>" (ex.: quiz-1-7-codigos-ab:reprovada-trave).
+// Esse código tem ":" de propósito: o hub busca um quiz por "<quiz>|", então a contagem por capa não aparece misturada na aba Leads.
+// Só vale se a capa estiver nesta lista (ids de VARIANTES_CAPA em data.js). "v" fora da lista é ignorado: o quiz continua contando normal.
+const CAPAS = {
+  'quiz-1-7-codigos-ab': ['reprovada-trave', 'reprovada-3coisas', 'reprovada-falta', 'reprovada-3']
+};
 const MAX_CORPO = 6000;   // bytes
 const MAX_TELAS = 20;     // telas por aviso
 const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -32,13 +39,16 @@ export async function onRequestPost({ request, env }) {
     }
 
     const agora = new Date().toISOString();
-    await env.TELAS.prepare(`INSERT INTO telas_contagem (id, quiz, dia, tela, ordem, nome, condicional, pessoas, criado_em, atualizado_em, arquivado)
+    const somar = quiz => env.TELAS.prepare(`INSERT INTO telas_contagem (id, quiz, dia, tela, ordem, nome, condicional, pessoas, criado_em, atualizado_em, arquivado)
       SELECT ?1 || '|' || d.value || '|' || json_extract(t.value, '$.id'), ?1, d.value, json_extract(t.value, '$.id'),
         json_extract(t.value, '$.o'), json_extract(t.value, '$.n'), json_extract(t.value, '$.c'), 1, ?3, ?3, 0
       FROM json_each(?2) t, json_each(?4) d WHERE true
       ON CONFLICT(id) DO UPDATE SET pessoas = pessoas + 1, ordem = excluded.ordem, nome = excluded.nome,
         condicional = excluded.condicional, atualizado_em = excluded.atualizado_em`)
-      .bind(d.q, JSON.stringify([...telas.values()]), agora, JSON.stringify([dia.format(new Date()), 'total'])).run();
+      .bind(quiz, JSON.stringify([...telas.values()]), agora, JSON.stringify([dia.format(new Date()), 'total']));
+    const capa = typeof d.v === 'string' && (CAPAS[d.q] || []).includes(d.v) ? d.v : null;
+    // As duas contagens (do quiz e da capa) entram juntas ou nenhuma entra.
+    await env.TELAS.batch(capa ? [somar(d.q), somar(d.q + ':' + capa)] : [somar(d.q)]);
     return new Response(null, { status: 204 });
   } catch (e) {
     return recusa;
