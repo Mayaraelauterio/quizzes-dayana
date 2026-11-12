@@ -937,7 +937,8 @@
     if (C.EMPRESA_CNPJ) partes.push('CNPJ ' + esc(C.EMPRESA_CNPJ));
     if (C.POLITICA_URL) partes.push('<a href="' + esc(C.POLITICA_URL) + '" target="_blank" rel="noopener">Política de privacidade</a>');
     if (C.TERMOS_URL) partes.push('<a href="' + esc(C.TERMOS_URL) + '" target="_blank" rel="noopener">Termos de uso</a>');
-    if (!partes.length && PH) partes.push('<span class="falta">[Rodapé: razão social, CNPJ, política e termos → config.js]</span>');
+    /* 12/11/2026 (pedido da Mayara): sem os dados da empresa em config.js, o rodapé não mostra mais o aviso de teste
+       "[Rodapé: razão social…]". Quando houver, preencher EMPRESA_RAZAO, EMPRESA_CNPJ, POLITICA_URL e TERMOS_URL. */
     return '<footer class="rodape"><p class="aviso-legal">Os resultados dependem do estudo e da dedicação de cada pessoa. Não há garantia de aprovação.</p>' +
       partes.join(' · ') + '<p>© ' + new Date().getFullYear() + ' Dayana Martins</p></footer>';
   }
