@@ -846,8 +846,26 @@
   var LEAD_WEBHOOK = "";   // [OPCIONAL: endereço que recebe nome, telefone e e-mail antes do checkout]
 
   /* Com o checkout ligado, os botões "Quero o Reta Final ENAM" e o botão fixo levam direto ao pagamento. */
+  /* Origem do visitante (UTM): guarda o que veio no endereço da página (orgânico, tráfego pago...) e leva junto
+     para o checkout e para o cadastro. Vale a primeira origem da visita. */
+  var UTM_CAMPOS = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"];
+  var utm = {};
+  try {
+    var qs = new URLSearchParams(location.search), achou = false;
+    UTM_CAMPOS.forEach(function(k){ var v = (qs.get(k) || "").trim().slice(0,100); if (v) { utm[k] = v; achou = true; } });
+    if (achou) sessionStorage.setItem("utm_enam", JSON.stringify(utm));
+    else utm = JSON.parse(sessionStorage.getItem("utm_enam") || "{}");
+  } catch(_) {}
+  function checkoutComUtm(){
+    if (!CHECKOUT_URL) return "";
+    var u = new URL(CHECKOUT_URL);
+    Object.keys(utm).forEach(function(k){ u.searchParams.set(k, utm[k]); });
+    return u.href;
+  }
+
+  /* Com o checkout ligado, os botões "Quero o Reta Final ENAM" e o botão fixo levam direto ao pagamento. */
   if (CHECKOUT_URL) {
-    document.querySelectorAll("a[data-cta], #sticky a.btn").forEach(function(a){ a.href = CHECKOUT_URL; });
+    document.querySelectorAll("a[data-cta], #sticky a.btn").forEach(function(a){ a.href = checkoutComUtm(); });
   }
 
   var form = document.getElementById("form-lead");
@@ -879,11 +897,11 @@
     if (digitos.length < 10) { mostrar("Digite o telefone com DDD."); form.telefone.focus(); return; }
     if (!form.email.checkValidity()) { mostrar("Digite um e-mail válido."); form.email.focus(); return; }
     if (!CHECKOUT_URL) { mostrar("Falta ligar o link do checkout (CHECKOUT_URL no código da página)."); return; }
-    var dados = { nome: nome, telefone: digitos, email: form.email.value.trim(), pagina: "reta-final-vi-enam" };
+    var dados = { nome: nome, telefone: digitos, email: form.email.value.trim(), pagina: "reta-final-vi-enam", origem: utm.utm_source || "direto", utm: utm };
     if (LEAD_WEBHOOK && navigator.sendBeacon) {
       try { navigator.sendBeacon(LEAD_WEBHOOK, new Blob([JSON.stringify(dados)], {type:"text/plain"})); } catch(_){}
     }
-    window.location.href = CHECKOUT_URL;   // dados pessoais nunca vão na URL
+    window.location.href = checkoutComUtm();   // dados pessoais nunca vão na URL (só a origem, UTM)
   });
 
   /* Botão fixo: aparece depois da segunda dobra (2 telas de rolagem) e fica na tela */
