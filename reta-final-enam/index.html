@@ -421,6 +421,14 @@
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.js .reveal{opacity:1;transform:none}}
 </style>
 <script>document.documentElement.className+=" js"</script>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1804617524175213');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1804617524175213&ev=PageView&noscript=1" alt=""></noscript>
+<!-- End Meta Pixel -->
 </head>
 <body>
 
@@ -900,6 +908,7 @@
     if (!form.email.checkValidity()) { mostrar("Digite um e-mail válido."); form.email.focus(); return; }
     if (!CHECKOUT_URL) { mostrar("Falta ligar o link do checkout (CHECKOUT_URL no código da página)."); return; }
     var dados = { nome: nome, telefone: digitos, email: form.email.value.trim(), pagina: "reta-final-vi-enam", origem: utm.utm_source || "direto", utm: utm };
+    try { if (window.fbq) fbq("track", "Lead", { content_name: "Reta Final ENAM" }); } catch(_) {}   // pixel da Meta: cadastro feito
     var botao = form.querySelector("button[type=submit]");
     if (botao) { botao.disabled = true; botao.textContent = "Abrindo o pagamento..."; }
     var ir = function(){ if (!ir.feito) { ir.feito = true; window.location.href = checkoutComUtm(); } };   // dados pessoais nunca vão na URL (só a origem, UTM)
