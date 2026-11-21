@@ -843,7 +843,7 @@
   /* ===== CONFIGURAÇÃO (preencher antes de publicar) ===== */
   var CHECKOUT_URL = "https://payfast.greenn.com.br/206208/offer/MMugae";   // checkout da Greenn
   var PRIVACY_URL  = "";   // [INSERIR LINK DA POLÍTICA DE PRIVACIDADE]
-  var LEAD_WEBHOOK = "";   // [OPCIONAL: endereço que recebe nome, telefone e e-mail antes do checkout]
+  var LEAD_WEBHOOK = "https://script.google.com/macros/s/AKfycbwvo5MRD1xo4mb0KCT-q48PZXQlhjQ3yjFHi9_j-D7pnt4tGHjquoVw2PJlLzMvN2rQ/exec";   // planilha "Leads - Reta Final ENAM" (Google)
 
   /* Com o checkout ligado, os botões "Quero o Reta Final ENAM" e o botão fixo levam direto ao pagamento. */
   /* Origem do visitante (UTM): guarda o que veio no endereço da página (orgânico, tráfego pago...) e leva junto
@@ -863,10 +863,8 @@
     return u.href;
   }
 
-  /* Com o checkout ligado, os botões "Quero o Reta Final ENAM" e o botão fixo levam direto ao pagamento. */
-  if (CHECKOUT_URL) {
-    document.querySelectorAll("a[data-cta], #sticky a.btn").forEach(function(a){ a.href = checkoutComUtm(); });
-  }
+  /* Os botões "Quero o Reta Final ENAM" e o botão fixo levam ao formulário (#oferta).
+     Depois do cadastro, o formulário grava o lead na planilha e abre o checkout. */
 
   var form = document.getElementById("form-lead");
   var aviso = document.getElementById("aviso");
@@ -898,10 +896,23 @@
     if (!form.email.checkValidity()) { mostrar("Digite um e-mail válido."); form.email.focus(); return; }
     if (!CHECKOUT_URL) { mostrar("Falta ligar o link do checkout (CHECKOUT_URL no código da página)."); return; }
     var dados = { nome: nome, telefone: digitos, email: form.email.value.trim(), pagina: "reta-final-vi-enam", origem: utm.utm_source || "direto", utm: utm };
-    if (LEAD_WEBHOOK && navigator.sendBeacon) {
-      try { navigator.sendBeacon(LEAD_WEBHOOK, new Blob([JSON.stringify(dados)], {type:"text/plain"})); } catch(_){}
-    }
-    window.location.href = checkoutComUtm();   // dados pessoais nunca vão na URL (só a origem, UTM)
+    var botao = form.querySelector("button[type=submit]");
+    if (botao) { botao.disabled = true; botao.textContent = "Abrindo o pagamento..."; }
+    var ir = function(){ if (!ir.feito) { ir.feito = true; window.location.href = checkoutComUtm(); } };   // dados pessoais nunca vão na URL (só a origem, UTM)
+    setTimeout(ir, 2500);   // se a planilha demorar, o pagamento abre assim mesmo
+    if (LEAD_WEBHOOK) {
+      try {
+        fetch(LEAD_WEBHOOK, { method:"POST", mode:"no-cors", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(dados) })
+          .then(ir, ir);
+      } catch(_) { ir(); }
+    } else { ir(); }
+  });
+
+  /* Voltando do checkout pelo botão "voltar" do navegador, o botão do formulário volta ao normal. */
+  window.addEventListener("pageshow", function(ev){
+    if (!ev.persisted) return;
+    var b = form.querySelector("button[type=submit]");
+    if (b) { b.disabled = false; b.textContent = "Quero o Reta Final ENAM"; }
   });
 
   /* Botão fixo: aparece depois da segunda dobra (2 telas de rolagem) e fica na tela */
